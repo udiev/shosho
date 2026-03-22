@@ -3,7 +3,8 @@ import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
-import axios from 'axios'
+import api from '../../services/api'
+import { PlusIcon, CalendarDaysIcon } from '@heroicons/react/24/outline'
 
 const STATUS_LABELS = {
   scheduled: 'מתוזמן',
@@ -42,7 +43,7 @@ export default function AppointmentsPage() {
 
   async function fetchAppointments() {
     try {
-      const res = await axios.get('http://localhost:3001/api/appointments')
+      const res = await api.get('/api/appointments')
       setAppointments(res.data)
     } catch (err) {
       setError('שגיאה בטעינת תורים')
@@ -50,12 +51,12 @@ export default function AppointmentsPage() {
   }
 
   async function fetchClients() {
-    const res = await axios.get('http://localhost:3001/api/clients')
+    const res = await api.get('/api/clients')
     setClients(res.data)
   }
 
   async function fetchServices() {
-    const res = await axios.get('http://localhost:3001/api/services')
+    const res = await api.get('/api/services')
     setServices(res.data.filter(s => s.is_active))
   }
 
@@ -113,9 +114,9 @@ export default function AppointmentsPage() {
         end_time: new Date(form.end_time).toISOString(),
       }
       if (selectedAppointment) {
-        await axios.put(`http://localhost:3001/api/appointments/${selectedAppointment.id}`, payload)
+        await api.put(`/api/appointments/${selectedAppointment.id}`, payload)
       } else {
-        await axios.post('http://localhost:3001/api/appointments', payload)
+        await api.post('/api/appointments', payload)
       }
       await fetchAppointments()
       setShowForm(false)
@@ -130,7 +131,7 @@ export default function AppointmentsPage() {
     if (!selectedAppointment) return
     if (!confirm('למחוק את התור?')) return
     try {
-      await axios.delete(`http://localhost:3001/api/appointments/${selectedAppointment.id}`)
+      await api.delete(`/api/appointments/${selectedAppointment.id}`)
       await fetchAppointments()
       setShowForm(false)
     } catch (err) {
@@ -143,15 +144,17 @@ export default function AppointmentsPage() {
     title: `${a.client_name || 'לקוח'} — ${a.service_name || 'שירות'}`,
     start: a.start_time,
     end: a.end_time,
-    backgroundColor: a.service_color || STATUS_COLORS[a.status] || '#C2185B',
+    backgroundColor: a.service_color || STATUS_COLORS[a.status] || '#db2777',
     borderColor: 'transparent',
     textColor: '#fff',
   }))
 
+  const selectClass = "w-full border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-400 focus:bg-white transition"
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">יומן תורים</h1>
+        <h1 className="text-2xl font-bold text-slate-800">יומן תורים</h1>
         <button
           onClick={() => {
             const now = new Date()
@@ -164,15 +167,20 @@ export default function AppointmentsPage() {
             })
             setShowForm(true)
           }}
-          className="bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 transition text-sm"
+          className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 transition text-sm"
         >
-          + תור חדש
+          <PlusIcon className="w-4 h-4" />
+          תור חדש
         </button>
       </div>
 
-      {error && <div className="bg-red-50 text-red-600 rounded-lg px-4 py-3 mb-4 text-sm">{error}</div>}
+      {error && (
+        <div className="bg-red-50 text-red-600 rounded-xl px-4 py-3 mb-4 text-sm border border-red-100">
+          {error}
+        </div>
+      )}
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
         <FullCalendar
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -199,55 +207,73 @@ export default function AppointmentsPage() {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-gray-800 mb-6">
-              {selectedAppointment ? 'עריכת תור' : 'תור חדש'}
-            </h2>
-            {error && <div className="bg-red-50 text-red-600 rounded-lg px-4 py-3 mb-4 text-sm">{error}</div>}
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
+                <CalendarDaysIcon className="w-5 h-5 text-primary-600" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-800">
+                {selectedAppointment ? 'עריכת תור' : 'תור חדש'}
+              </h2>
+            </div>
+            {error && (
+              <div className="bg-red-50 text-red-600 rounded-xl px-4 py-3 mb-4 text-sm border border-red-100">
+                {error}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">לקוח</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">לקוח</label>
                 <select
                   value={form.client_id}
                   onChange={e => setForm({ ...form, client_id: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  className={selectClass}
                 >
                   <option value="">בחר לקוח</option>
                   {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">שירות</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">שירות</label>
                 <select
                   value={form.service_id}
                   onChange={e => handleServiceChange(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  className={selectClass}
                 >
                   <option value="">בחר שירות</option>
                   {services.map(s => <option key={s.id} value={s.id}>{s.name} ({s.duration_minutes} דק')</option>)}
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">התחלה</label>
-                <input type="datetime-local" value={form.start_time}
-                  onChange={e => setForm({ ...form, start_time: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                  required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">סיום</label>
-                <input type="datetime-local" value={form.end_time}
-                  onChange={e => setForm({ ...form, end_time: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                  required />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">התחלה</label>
+                  <input
+                    type="datetime-local"
+                    value={form.start_time}
+                    onChange={e => setForm({ ...form, start_time: e.target.value })}
+                    className={selectClass}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">סיום</label>
+                  <input
+                    type="datetime-local"
+                    value={form.end_time}
+                    onChange={e => setForm({ ...form, end_time: e.target.value })}
+                    className={selectClass}
+                    required
+                  />
+                </div>
               </div>
               {selectedAppointment && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">סטטוס</label>
-                  <select value={form.status}
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">סטטוס</label>
+                  <select
+                    value={form.status}
                     onChange={e => setForm({ ...form, status: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                    className={selectClass}
                   >
                     {Object.entries(STATUS_LABELS).map(([val, label]) => (
                       <option key={val} value={val}>{label}</option>
@@ -256,26 +282,37 @@ export default function AppointmentsPage() {
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">הערות</label>
-                <textarea value={form.notes}
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">הערות</label>
+                <textarea
+                  value={form.notes}
                   onChange={e => setForm({ ...form, notes: e.target.value })}
                   rows={2}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                  placeholder="הערות לתור..." />
+                  className={selectClass}
+                  placeholder="הערות לתור..."
+                />
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="submit" disabled={saving}
-                  className="flex-1 bg-primary-600 text-white py-2 rounded-xl font-medium hover:bg-primary-700 transition disabled:opacity-50">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 bg-primary-600 text-white py-2.5 rounded-xl font-medium hover:bg-primary-700 transition disabled:opacity-50 text-sm"
+                >
                   {saving ? 'שומר...' : 'שמור'}
                 </button>
-                <button type="button" onClick={() => setShowForm(false)}
-                  className="flex-1 border border-gray-300 text-gray-600 py-2 rounded-xl font-medium hover:bg-gray-50 transition">
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl font-medium hover:bg-slate-50 transition text-sm"
+                >
                   ביטול
                 </button>
               </div>
               {selectedAppointment && (
-                <button type="button" onClick={handleDelete}
-                  className="w-full text-red-400 hover:text-red-600 text-sm py-1 transition">
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="w-full text-red-400 hover:text-red-600 text-sm py-1 transition"
+                >
                   מחיקת תור
                 </button>
               )}

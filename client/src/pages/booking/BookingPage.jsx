@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import axios from 'axios'
+import api from '../../services/api'
 
-const API = 'http://localhost:3001/api'
+const API = import.meta.env.VITE_API_URL + '/api'
 
 const STEPS = ['שירות', 'תאריך', 'שעה', 'פרטים', 'אישור']
 
@@ -46,7 +46,7 @@ export default function BookingPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await axios.get(`${API}/book/${slug}`)
+        const res = await api.get(`${API}/book/${slug}`)
         setBusiness(res.data.business)
         setServices(res.data.services)
       } catch {
@@ -63,7 +63,7 @@ export default function BookingPage() {
     setSlotsLoading(true)
     setSlots([])
     setSelectedSlot(null)
-    axios.get(`${API}/book/${slug}/slots`, {
+    api.get(`${API}/book/${slug}/slots`, {
       params: { date: selectedDate, service_id: selectedService.id }
     }).then(res => setSlots(res.data))
       .finally(() => setSlotsLoading(false))
@@ -73,7 +73,7 @@ export default function BookingPage() {
     if (!form.name || !form.phone) return
     setSubmitting(true)
     try {
-      await axios.post(`${API}/book/${slug}/book`, {
+      await api.post(`${API}/book/${slug}/book`, {
         service_id: selectedService.id,
         start_time: selectedSlot.start,
         end_time: selectedSlot.end,

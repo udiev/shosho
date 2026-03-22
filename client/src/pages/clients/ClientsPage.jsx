@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import api from '../../services/api'
+import {
+  MagnifyingGlassIcon,
+  PlusIcon,
+  ArrowUpTrayIcon,
+  UsersIcon,
+} from '@heroicons/react/24/outline'
 
 export default function ClientsPage() {
   const [clients, setClients] = useState([])
@@ -15,7 +21,7 @@ export default function ClientsPage() {
 
   async function fetchClients() {
     try {
-      const res = await axios.get(`http://localhost:3001/api/clients?search=${search}`)
+      const res = await api.get(`/api/clients?search=${search}`)
       setClients(res.data)
     } catch (err) {
       setError('שגיאה בטעינת לקוחות')
@@ -41,10 +47,10 @@ export default function ClientsPage() {
     setSaving(true)
     try {
       if (editingClient) {
-        const res = await axios.put(`http://localhost:3001/api/clients/${editingClient.id}`, form)
+        const res = await api.put(`/api/clients/${editingClient.id}`, form)
         setClients(clients.map(c => c.id === editingClient.id ? res.data : c))
       } else {
-        const res = await axios.post('http://localhost:3001/api/clients', form)
+        const res = await api.post('/api/clients', form)
         setClients([res.data, ...clients])
       }
       setShowForm(false)
@@ -58,7 +64,7 @@ export default function ClientsPage() {
   async function handleDelete(id) {
     if (!confirm('למחוק את הלקוח?')) return
     try {
-      await axios.delete(`http://localhost:3001/api/clients/${id}`)
+      await api.delete(`/api/clients/${id}`)
       setClients(clients.filter(c => c.id !== id))
     } catch (err) {
       setError('שגיאה במחיקה')
@@ -82,7 +88,7 @@ export default function ClientsPage() {
         const name = nameIdx >= 0 ? cols[nameIdx] : cols[0]
         if (!name) continue
         try {
-          const res = await axios.post('http://localhost:3001/api/clients', {
+          const res = await api.post('/api/clients', {
             name,
             phone: phoneIdx >= 0 ? cols[phoneIdx] : '',
             email: emailIdx >= 0 ? cols[emailIdx] : '',
@@ -96,42 +102,67 @@ export default function ClientsPage() {
     reader.readAsText(file)
   }
 
+  const avatarColors = [
+    'bg-violet-100 text-violet-700',
+    'bg-blue-100 text-blue-700',
+    'bg-emerald-100 text-emerald-700',
+    'bg-amber-100 text-amber-700',
+    'bg-rose-100 text-rose-700',
+    'bg-primary-100 text-primary-700',
+  ]
+
+  function avatarColor(name) {
+    const i = (name?.charCodeAt(0) || 0) % avatarColors.length
+    return avatarColors[i]
+  }
+
   return (
     <div>
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">לקוחות</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">לקוחות</h1>
+          {!loading && <p className="text-sm text-slate-400 mt-0.5">{clients.length} לקוחות במערכת</p>}
+        </div>
         <div className="flex gap-2">
-          <label className="border border-gray-300 text-gray-600 px-4 py-2 rounded-xl font-medium hover:bg-gray-50 transition cursor-pointer text-sm">
+          <label className="flex items-center gap-2 border border-slate-200 text-slate-600 px-4 py-2 rounded-xl font-medium hover:bg-slate-50 transition cursor-pointer text-sm">
+            <ArrowUpTrayIcon className="w-4 h-4" />
             ייבוא CSV
             <input type="file" accept=".csv" className="hidden" onChange={handleCSV} />
           </label>
           <button
             onClick={openNew}
-            className="bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 transition text-sm"
+            className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 transition text-sm"
           >
-            + לקוח חדש
+            <PlusIcon className="w-4 h-4" />
+            לקוח חדש
           </button>
         </div>
       </div>
 
-      {error && <div className="bg-red-50 text-red-600 rounded-lg px-4 py-3 mb-4 text-sm">{error}</div>}
+      {error && (
+        <div className="bg-red-50 text-red-600 rounded-xl px-4 py-3 mb-4 text-sm border border-red-100">
+          {error}
+        </div>
+      )}
 
       {/* Search */}
-      <div className="mb-4">
+      <div className="mb-5 relative">
+        <MagnifyingGlassIcon className="w-4 h-4 text-slate-400 absolute top-1/2 -translate-y-1/2 end-4" />
         <input
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="חיפוש לפי שם, טלפון או אימייל..."
-          className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
+          className="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 pe-10 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-400 transition"
         />
       </div>
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-            <h2 className="text-xl font-bold text-gray-800 mb-6">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+            <h2 className="text-xl font-bold text-slate-800 mb-6">
               {editingClient ? 'עריכת לקוח' : 'לקוח חדש'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -142,27 +173,42 @@ export default function ClientsPage() {
                 { name: 'notes', label: 'הערות', type: 'text', placeholder: 'הערות על הלקוח...' },
               ].map(field => (
                 <div key={field.name}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{field.label}</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">{field.label}</label>
                   <input
                     type={field.type}
                     value={form[field.name]}
                     onChange={e => setForm({ ...form, [field.name]: e.target.value })}
                     placeholder={field.placeholder}
                     required={field.required}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                    className="w-full border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-400 focus:bg-white transition"
                   />
                 </div>
               ))}
               <div className="flex gap-3 pt-2">
-                <button type="submit" disabled={saving}
-                  className="flex-1 bg-primary-600 text-white py-2 rounded-xl font-medium hover:bg-primary-700 transition disabled:opacity-50">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 bg-primary-600 text-white py-2.5 rounded-xl font-medium hover:bg-primary-700 transition disabled:opacity-50 text-sm"
+                >
                   {saving ? 'שומר...' : 'שמור'}
                 </button>
-                <button type="button" onClick={() => setShowForm(false)}
-                  className="flex-1 border border-gray-300 text-gray-600 py-2 rounded-xl font-medium hover:bg-gray-50 transition">
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl font-medium hover:bg-slate-50 transition text-sm"
+                >
                   ביטול
                 </button>
               </div>
+              {editingClient && (
+                <button
+                  type="button"
+                  onClick={() => { handleDelete(editingClient.id); setShowForm(false) }}
+                  className="w-full text-red-400 hover:text-red-600 text-sm py-1 transition"
+                >
+                  מחיקת לקוח
+                </button>
+              )}
             </form>
           </div>
         </div>
@@ -170,44 +216,52 @@ export default function ClientsPage() {
 
       {/* Clients list */}
       {loading ? (
-        <div className="text-center text-gray-400 py-12">טוען...</div>
+        <div className="flex items-center justify-center py-20">
+          <div className="w-7 h-7 border-2 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
+        </div>
       ) : clients.length === 0 ? (
-        <div className="text-center text-gray-400 py-12 bg-white rounded-2xl">
-          <p className="text-4xl mb-3">👥</p>
-          <p>{search ? 'לא נמצאו לקוחות' : 'אין לקוחות עדיין'}</p>
-          {!search && <p className="text-sm mt-1">לחץ על "לקוח חדש" או ייבא מ-CSV</p>}
+        <div className="text-center py-20 bg-white rounded-2xl border border-slate-100">
+          <div className="w-14 h-14 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <UsersIcon className="w-7 h-7 text-slate-300" />
+          </div>
+          <p className="text-slate-500 font-medium">{search ? 'לא נמצאו לקוחות' : 'אין לקוחות עדיין'}</p>
+          {!search && <p className="text-sm text-slate-400 mt-1">לחץ על "לקוח חדש" או ייבא מ-CSV</p>}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="divide-y divide-gray-100">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="divide-y divide-slate-50">
             {clients.map(client => (
-              <div key={client.id} className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition">
-                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-lg flex-shrink-0">
+              <div key={client.id} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-base flex-shrink-0 ${avatarColor(client.name)}`}>
                   {client.name.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-800">{client.name}</p>
-                  <p className="text-sm text-gray-500 truncate">
+                  <p className="font-medium text-slate-800 text-sm">{client.name}</p>
+                  <p className="text-xs text-slate-400 truncate mt-0.5">
                     {[client.phone, client.email].filter(Boolean).join(' · ')}
                   </p>
                 </div>
-                <div className="text-sm text-gray-400 flex-shrink-0">
+                <div className="text-xs text-slate-400 flex-shrink-0 bg-slate-50 px-2.5 py-1 rounded-full">
                   {client.visit_count} ביקורים
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={() => openEdit(client)}
-                    className="text-sm text-primary-600 hover:text-primary-700 px-2 py-1 transition">
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => openEdit(client)}
+                    className="text-xs text-primary-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-50 transition font-medium"
+                  >
                     עריכה
                   </button>
-                  <button onClick={() => handleDelete(client.id)}
-                    className="text-sm text-red-400 hover:text-red-600 px-2 py-1 transition">
+                  <button
+                    onClick={() => handleDelete(client.id)}
+                    className="text-xs text-slate-300 hover:text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition font-medium"
+                  >
                     מחיקה
                   </button>
                 </div>
               </div>
             ))}
           </div>
-          <div className="px-6 py-3 bg-gray-50 text-sm text-gray-400 border-t border-gray-100">
+          <div className="px-6 py-3 bg-slate-50 text-xs text-slate-400 border-t border-slate-100 font-medium">
             {clients.length} לקוחות
           </div>
         </div>
