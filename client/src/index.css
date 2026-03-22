@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  font-family: 'Heebo', Arial, sans-serif;
+}
+
+body {
+  direction: rtl;
+}

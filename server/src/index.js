@@ -1,0 +1,31 @@
+const express = require('express')
+const cors = require('cors')
+require('dotenv').config()
+const { getPool } = require('./config/db')
+const authRoutes = require('./routes/auth')
+
+const app = express()
+const PORT = process.env.PORT || 3001
+
+app.use(cors({ origin: 'http://localhost:5173' }))
+app.use(express.json())
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Shosho API is running 🌸' })
+})
+
+app.use('/api/auth', authRoutes)
+
+async function start() {
+  try {
+    await getPool()
+    app.listen(PORT, () => {
+      console.log(`🌸 Shosho server running on port ${PORT}`)
+    })
+  } catch (err) {
+    console.error('❌ Failed to connect to DB:', err.message)
+    process.exit(1)
+  }
+}
+
+start()
