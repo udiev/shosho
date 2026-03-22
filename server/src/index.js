@@ -8,11 +8,12 @@ const clientsRoutes = require('./routes/clients')
 const appointmentsRoutes = require('./routes/appointments')
 const statsRoutes = require('./routes/stats')
 const businessRoutes = require('./routes/business')
+const bookingRoutes = require('./routes/booking')
 
 const app = express()
 const PORT = process.env.PORT || 3001
 
-app.use(cors({ origin: 'http://localhost:5173' }))
+app.use(cors({ origin: '*' }))
 app.use(express.json())
 
 app.get('/health', (req, res) => {
@@ -25,6 +26,7 @@ app.use('/api/clients', clientsRoutes)
 app.use('/api/appointments', appointmentsRoutes)
 app.use('/api/stats', statsRoutes)
 app.use('/api/business', businessRoutes)
+app.use('/api/book', bookingRoutes)
 
 async function start() {
   try {

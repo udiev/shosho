@@ -8,6 +8,7 @@ import ServicesPage from './pages/services/ServicesPage'
 import ClientsPage from './pages/clients/ClientsPage'
 import AppointmentsPage from './pages/appointments/AppointmentsPage'
 import SettingsPage from './pages/settings/SettingsPage'
+import BookingPage from './pages/booking/BookingPage'
 import AppLayout from './layouts/AppLayout'
 
 function ProtectedRoute({ children }) {
@@ -26,6 +27,7 @@ export default function App() {
       <Route path="/" element={<PublicOnlyRoute><LandingPage /></PublicOnlyRoute>} />
       <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
       <Route path="/register" element={<PublicOnlyRoute><RegisterPage /></PublicOnlyRoute>} />
+      <Route path="/book/:slug" element={<BookingPage />} />
 
       <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="dashboard" element={<DashboardPage />} />
