@@ -5,6 +5,7 @@ const { getPool } = require('./config/db')
 const authRoutes = require('./routes/auth')
 const servicesRoutes = require('./routes/services')
 const clientsRoutes = require('./routes/clients')
+const appointmentsRoutes = require('./routes/appointments')
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -19,6 +20,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/services', servicesRoutes)
 app.use('/api/clients', clientsRoutes)
+app.use('/api/appointments', appointmentsRoutes)
 
 async function start() {
   try {
