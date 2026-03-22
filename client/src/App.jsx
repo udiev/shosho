@@ -5,6 +5,7 @@ import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import ServicesPage from './pages/services/ServicesPage'
+import ClientsPage from './pages/clients/ClientsPage'
 import AppLayout from './layouts/AppLayout'
 
 function ProtectedRoute({ children }) {
@@ -27,6 +28,7 @@ export default function App() {
       <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="services" element={<ServicesPage />} />
+        <Route path="clients" element={<ClientsPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
