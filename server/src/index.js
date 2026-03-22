@@ -3,6 +3,7 @@ const cors = require('cors')
 require('dotenv').config()
 const { getPool } = require('./config/db')
 const authRoutes = require('./routes/auth')
+const servicesRoutes = require('./routes/services')
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -15,6 +16,7 @@ app.get('/health', (req, res) => {
 })
 
 app.use('/api/auth', authRoutes)
+app.use('/api/services', servicesRoutes)
 
 async function start() {
   try {

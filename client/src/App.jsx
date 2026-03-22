@@ -4,6 +4,7 @@ import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
+import ServicesPage from './pages/services/ServicesPage'
 import AppLayout from './layouts/AppLayout'
 
 function ProtectedRoute({ children }) {
@@ -25,6 +26,7 @@ export default function App() {
 
       <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="services" element={<ServicesPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
