@@ -10,11 +10,11 @@ import {
 } from '@heroicons/react/24/outline'
 
 const navItems = [
-  { to: '/dashboard', label: 'דשבורד', Icon: Squares2X2Icon },
-  { to: '/appointments', label: 'יומן', Icon: CalendarDaysIcon },
-  { to: '/clients', label: 'לקוחות', Icon: UsersIcon },
-  { to: '/services', label: 'שירותים', Icon: ScissorsIcon },
-  { to: '/settings', label: 'הגדרות', Icon: Cog6ToothIcon },
+  { to: '/dashboard',    label: 'בית',      Icon: Squares2X2Icon  },
+  { to: '/appointments', label: 'יומן',     Icon: CalendarDaysIcon },
+  { to: '/clients',      label: 'לקוחות',   Icon: UsersIcon        },
+  { to: '/services',     label: 'שירותים',  Icon: ScissorsIcon     },
+  { to: '/settings',     label: 'הגדרות',   Icon: Cog6ToothIcon    },
 ]
 
 export default function AppLayout() {
@@ -23,8 +23,8 @@ export default function AppLayout() {
   return (
     <div className="min-h-screen flex bg-white">
 
-      {/* ── Sidebar ── */}
-      <aside className="w-64 flex flex-col flex-shrink-0 bg-primary-50 border-l border-primary-100">
+      {/* ── Desktop sidebar ── */}
+      <aside className="hidden md:flex w-64 flex-col flex-shrink-0 bg-primary-50 border-l border-primary-100">
 
         {/* Brand */}
         <div className="px-5 pt-7 pb-5">
@@ -84,13 +84,55 @@ export default function AppLayout() {
             </button>
           </div>
         </div>
-
       </aside>
 
-      {/* ── Main ── */}
-      <main className="flex-1 overflow-auto bg-gray-50/60 p-8">
-        <Outlet />
+      {/* ── Main content ── */}
+      <main className="flex-1 overflow-auto bg-gray-50/60">
+        {/* Mobile top bar */}
+        <div className="md:hidden sticky top-0 z-40 bg-white border-b border-primary-100 px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #f472b6 0%, #be185d 100%)' }}
+            >
+              <span className="text-white font-black text-sm">ש</span>
+            </div>
+            <span className="font-extrabold text-primary-900 text-base tracking-tight">שושו</span>
+          </div>
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
+            style={{ background: 'linear-gradient(135deg, #f9a8d4 0%, #be185d 100%)' }}
+          >
+            {user?.name?.charAt(0) || '?'}
+          </div>
+        </div>
+
+        <div className="p-4 md:p-8 pb-24 md:pb-8">
+          <Outlet />
+        </div>
       </main>
+
+      {/* ── Mobile bottom nav ── */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-100 z-50 flex" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        {navItems.map(({ to, label, Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5"
+          >
+            {({ isActive }) => (
+              <>
+                <div className={`p-1.5 rounded-xl transition-colors ${isActive ? 'bg-primary-50' : ''}`}>
+                  <Icon className={`w-[22px] h-[22px] transition-colors ${isActive ? 'text-primary-600' : 'text-slate-400'}`} />
+                </div>
+                <span className={`text-[10px] font-semibold transition-colors ${isActive ? 'text-primary-600' : 'text-slate-400'}`}>
+                  {label}
+                </span>
+              </>
+            )}
+          </NavLink>
+        ))}
+      </nav>
 
     </div>
   )

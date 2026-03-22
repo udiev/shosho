@@ -1,11 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../services/api'
-import {
-  MagnifyingGlassIcon,
-  PlusIcon,
-  ArrowUpTrayIcon,
-  UsersIcon,
-} from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, PlusIcon, ArrowUpTrayIcon, UsersIcon } from '@heroicons/react/24/outline'
 
 export default function ClientsPage() {
   const [clients, setClients] = useState([])
@@ -23,7 +18,7 @@ export default function ClientsPage() {
     try {
       const res = await api.get(`/api/clients?search=${search}`)
       setClients(res.data)
-    } catch (err) {
+    } catch {
       setError('שגיאה בטעינת לקוחות')
     } finally {
       setLoading(false)
@@ -54,7 +49,7 @@ export default function ClientsPage() {
         setClients([res.data, ...clients])
       }
       setShowForm(false)
-    } catch (err) {
+    } catch {
       setError('שגיאה בשמירה')
     } finally {
       setSaving(false)
@@ -66,7 +61,8 @@ export default function ClientsPage() {
     try {
       await api.delete(`/api/clients/${id}`)
       setClients(clients.filter(c => c.id !== id))
-    } catch (err) {
+      setShowForm(false)
+    } catch {
       setError('שגיאה במחיקה')
     }
   }
@@ -81,7 +77,6 @@ export default function ClientsPage() {
       const nameIdx = headers.findIndex(h => h.includes('שם') || h.includes('name'))
       const phoneIdx = headers.findIndex(h => h.includes('טלפון') || h.includes('phone'))
       const emailIdx = headers.findIndex(h => h.includes('מייל') || h.includes('email'))
-
       let imported = 0
       for (let i = 1; i < lines.length; i++) {
         const cols = lines[i].split(',').map(c => c.trim())
@@ -103,118 +98,99 @@ export default function ClientsPage() {
   }
 
   const avatarColors = [
-    'bg-violet-100 text-violet-700',
-    'bg-blue-100 text-blue-700',
-    'bg-emerald-100 text-emerald-700',
-    'bg-amber-100 text-amber-700',
-    'bg-rose-100 text-rose-700',
-    'bg-primary-100 text-primary-700',
+    'bg-violet-100 text-violet-700', 'bg-blue-100 text-blue-700',
+    'bg-emerald-100 text-emerald-700', 'bg-amber-100 text-amber-700',
+    'bg-rose-100 text-rose-700', 'bg-primary-100 text-primary-700',
   ]
+  const avatarColor = name => avatarColors[(name?.charCodeAt(0) || 0) % avatarColors.length]
 
-  function avatarColor(name) {
-    const i = (name?.charCodeAt(0) || 0) % avatarColors.length
-    return avatarColors[i]
-  }
+  const inputClass = "w-full border border-slate-200 bg-slate-50 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-400 focus:bg-white transition"
 
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">לקוחות</h1>
-          {!loading && <p className="text-sm text-slate-400 mt-0.5">{clients.length} לקוחות במערכת</p>}
+          <h1 className="text-xl md:text-2xl font-bold text-slate-800">לקוחות</h1>
+          {!loading && <p className="text-xs text-slate-400 mt-0.5">{clients.length} לקוחות</p>}
         </div>
         <div className="flex gap-2">
-          <label className="flex items-center gap-2 border border-slate-200 text-slate-600 px-4 py-2 rounded-xl font-medium hover:bg-slate-50 transition cursor-pointer text-sm">
+          <label className="flex items-center gap-1.5 border border-slate-200 text-slate-600 px-3 py-2 rounded-xl font-medium hover:bg-slate-50 transition cursor-pointer text-sm">
             <ArrowUpTrayIcon className="w-4 h-4" />
-            ייבוא CSV
+            <span className="hidden sm:inline">ייבוא CSV</span>
             <input type="file" accept=".csv" className="hidden" onChange={handleCSV} />
           </label>
-          <button
-            onClick={openNew}
-            className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 transition text-sm"
-          >
+          <button onClick={openNew}
+            className="flex items-center gap-1.5 bg-primary-600 text-white px-3 py-2 rounded-xl font-medium hover:bg-primary-700 transition text-sm">
             <PlusIcon className="w-4 h-4" />
-            לקוח חדש
+            <span>לקוח חדש</span>
           </button>
         </div>
       </div>
 
-      {error && (
-        <div className="bg-red-50 text-red-600 rounded-xl px-4 py-3 mb-4 text-sm border border-red-100">
-          {error}
-        </div>
-      )}
+      {error && <div className="bg-red-50 text-red-600 rounded-xl px-4 py-3 mb-4 text-sm border border-red-100">{error}</div>}
 
       {/* Search */}
-      <div className="mb-5 relative">
-        <MagnifyingGlassIcon className="w-4 h-4 text-slate-400 absolute top-1/2 -translate-y-1/2 end-4" />
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
+      <div className="mb-4 relative">
+        <MagnifyingGlassIcon className="w-4 h-4 text-slate-400 absolute top-1/2 -translate-y-1/2 end-4 pointer-events-none" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)}
           placeholder="חיפוש לפי שם, טלפון או אימייל..."
-          className="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 pe-10 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-400 transition"
+          className="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 pe-10 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-400 transition"
         />
       </div>
 
-      {/* Form Modal */}
+      {/* Bottom-sheet modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-            <h2 className="text-xl font-bold text-slate-800 mb-6">
-              {editingClient ? 'עריכת לקוח' : 'לקוח חדש'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {[
-                { name: 'name', label: 'שם מלא', type: 'text', placeholder: 'ישראל ישראלי', required: true },
-                { name: 'phone', label: 'טלפון', type: 'tel', placeholder: '050-0000000' },
-                { name: 'email', label: 'אימייל', type: 'email', placeholder: 'client@email.com' },
-                { name: 'notes', label: 'הערות', type: 'text', placeholder: 'הערות על הלקוח...' },
-              ].map(field => (
-                <div key={field.name}>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">{field.label}</label>
-                  <input
-                    type={field.type}
-                    value={form[field.name]}
-                    onChange={e => setForm({ ...form, [field.name]: e.target.value })}
-                    placeholder={field.placeholder}
-                    required={field.required}
-                    className="w-full border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-400 focus:bg-white transition"
-                  />
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end md:items-center justify-center"
+          onClick={e => e.target === e.currentTarget && setShowForm(false)}
+        >
+          <div className="bg-white w-full md:max-w-md rounded-t-3xl md:rounded-2xl shadow-2xl max-h-[92vh] overflow-y-auto">
+            <div className="md:hidden flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 bg-slate-200 rounded-full" />
+            </div>
+            <div className="p-6">
+              <h2 className="text-lg font-bold text-slate-800 mb-5">
+                {editingClient ? 'עריכת לקוח' : 'לקוח חדש'}
+              </h2>
+              <form onSubmit={handleSubmit} className="space-y-3.5">
+                {[
+                  { name: 'name', label: 'שם מלא', type: 'text', placeholder: 'ישראל ישראלי', required: true },
+                  { name: 'phone', label: 'טלפון', type: 'tel', placeholder: '050-0000000' },
+                  { name: 'email', label: 'אימייל', type: 'email', placeholder: 'client@email.com' },
+                  { name: 'notes', label: 'הערות', type: 'text', placeholder: 'הערות על הלקוח...' },
+                ].map(field => (
+                  <div key={field.name}>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">{field.label}</label>
+                    <input type={field.type} value={form[field.name]}
+                      onChange={e => setForm({ ...form, [field.name]: e.target.value })}
+                      placeholder={field.placeholder} required={field.required}
+                      className={inputClass} />
+                  </div>
+                ))}
+                <div className="flex gap-3 pt-1">
+                  <button type="submit" disabled={saving}
+                    className="flex-1 bg-primary-600 text-white py-3 rounded-xl font-semibold hover:bg-primary-700 transition disabled:opacity-50 text-sm">
+                    {saving ? 'שומר...' : 'שמור'}
+                  </button>
+                  <button type="button" onClick={() => setShowForm(false)}
+                    className="flex-1 border border-slate-200 text-slate-600 py-3 rounded-xl font-semibold hover:bg-slate-50 transition text-sm">
+                    ביטול
+                  </button>
                 </div>
-              ))}
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 bg-primary-600 text-white py-2.5 rounded-xl font-medium hover:bg-primary-700 transition disabled:opacity-50 text-sm"
-                >
-                  {saving ? 'שומר...' : 'שמור'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl font-medium hover:bg-slate-50 transition text-sm"
-                >
-                  ביטול
-                </button>
-              </div>
-              {editingClient && (
-                <button
-                  type="button"
-                  onClick={() => { handleDelete(editingClient.id); setShowForm(false) }}
-                  className="w-full text-red-400 hover:text-red-600 text-sm py-1 transition"
-                >
-                  מחיקת לקוח
-                </button>
-              )}
-            </form>
+                {editingClient && (
+                  <button type="button" onClick={() => handleDelete(editingClient.id)}
+                    className="w-full text-red-400 hover:text-red-600 text-sm py-2 transition font-medium">
+                    מחיקת לקוח
+                  </button>
+                )}
+              </form>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Clients list */}
+      {/* List */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <div className="w-7 h-7 border-2 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
@@ -224,44 +200,33 @@ export default function ClientsPage() {
           <div className="w-14 h-14 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <UsersIcon className="w-7 h-7 text-slate-300" />
           </div>
-          <p className="text-slate-500 font-medium">{search ? 'לא נמצאו לקוחות' : 'אין לקוחות עדיין'}</p>
-          {!search && <p className="text-sm text-slate-400 mt-1">לחץ על "לקוח חדש" או ייבא מ-CSV</p>}
+          <p className="text-slate-500 font-medium text-sm">{search ? 'לא נמצאו לקוחות' : 'אין לקוחות עדיין'}</p>
+          {!search && <p className="text-xs text-slate-400 mt-1">לחץ על "לקוח חדש" או ייבא מ-CSV</p>}
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="divide-y divide-slate-50">
             {clients.map(client => (
-              <div key={client.id} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors">
+              <div key={client.id}
+                className="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 transition-colors active:bg-slate-100"
+                onClick={() => openEdit(client)}
+              >
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-base flex-shrink-0 ${avatarColor(client.name)}`}>
                   {client.name.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-slate-800 text-sm">{client.name}</p>
+                  <p className="font-semibold text-slate-800 text-sm">{client.name}</p>
                   <p className="text-xs text-slate-400 truncate mt-0.5">
                     {[client.phone, client.email].filter(Boolean).join(' · ')}
                   </p>
                 </div>
-                <div className="text-xs text-slate-400 flex-shrink-0 bg-slate-50 px-2.5 py-1 rounded-full">
+                <div className="text-xs text-slate-400 flex-shrink-0 bg-slate-50 px-2 py-1 rounded-full font-medium">
                   {client.visit_count} ביקורים
-                </div>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => openEdit(client)}
-                    className="text-xs text-primary-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-50 transition font-medium"
-                  >
-                    עריכה
-                  </button>
-                  <button
-                    onClick={() => handleDelete(client.id)}
-                    className="text-xs text-slate-300 hover:text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition font-medium"
-                  >
-                    מחיקה
-                  </button>
                 </div>
               </div>
             ))}
           </div>
-          <div className="px-6 py-3 bg-slate-50 text-xs text-slate-400 border-t border-slate-100 font-medium">
+          <div className="px-4 py-3 bg-slate-50 text-xs text-slate-400 border-t border-slate-100 font-medium">
             {clients.length} לקוחות
           </div>
         </div>

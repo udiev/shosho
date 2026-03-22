@@ -22,6 +22,8 @@ const STATUS_COLORS = {
   no_show: '#F59E0B',
 }
 
+const isMobile = () => window.innerWidth < 768
+
 export default function AppointmentsPage() {
   const calendarRef = useRef(null)
   const [appointments, setAppointments] = useState([])
@@ -34,18 +36,22 @@ export default function AppointmentsPage() {
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [mobile, setMobile] = useState(isMobile())
 
   useEffect(() => {
     fetchAppointments()
     fetchClients()
     fetchServices()
+    const handler = () => setMobile(isMobile())
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
   }, [])
 
   async function fetchAppointments() {
     try {
       const res = await api.get('/api/appointments')
       setAppointments(res.data)
-    } catch (err) {
+    } catch {
       setError('שגיאה בטעינת תורים')
     }
   }
@@ -60,9 +66,9 @@ export default function AppointmentsPage() {
     setServices(res.data.filter(s => s.is_active))
   }
 
-  function handleDateClick(info) {
-    const start = new Date(info.dateStr + 'T09:00:00')
-    const end = new Date(info.dateStr + 'T10:00:00')
+  function openNew(startISO) {
+    const start = startISO ? new Date(startISO) : new Date()
+    const end = new Date(start.getTime() + 60 * 60000)
     setSelectedAppointment(null)
     setForm({
       client_id: '', service_id: '', notes: '', status: 'scheduled',
@@ -70,6 +76,11 @@ export default function AppointmentsPage() {
       end_time: end.toISOString().slice(0, 16),
     })
     setShowForm(true)
+  }
+
+  function handleDateClick(info) {
+    const start = new Date(info.dateStr + 'T09:00:00')
+    openNew(start.toISOString())
   }
 
   function handleEventClick(info) {
@@ -92,11 +103,7 @@ export default function AppointmentsPage() {
     if (service && form.start_time) {
       const start = new Date(form.start_time)
       const end = new Date(start.getTime() + service.duration_minutes * 60000)
-      setForm(f => ({
-        ...f,
-        service_id: serviceId,
-        end_time: end.toISOString().slice(0, 16)
-      }))
+      setForm(f => ({ ...f, service_id: serviceId, end_time: end.toISOString().slice(0, 16) }))
     } else {
       setForm(f => ({ ...f, service_id: serviceId }))
     }
@@ -128,13 +135,12 @@ export default function AppointmentsPage() {
   }
 
   async function handleDelete() {
-    if (!selectedAppointment) return
-    if (!confirm('למחוק את התור?')) return
+    if (!selectedAppointment || !confirm('למחוק את התור?')) return
     try {
       await api.delete(`/api/appointments/${selectedAppointment.id}`)
       await fetchAppointments()
       setShowForm(false)
-    } catch (err) {
+    } catch {
       setError('שגיאה במחיקה')
     }
   }
@@ -149,49 +155,36 @@ export default function AppointmentsPage() {
     textColor: '#fff',
   }))
 
-  const selectClass = "w-full border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-400 focus:bg-white transition"
+  const selectClass = "w-full border border-slate-200 bg-slate-50 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-400 focus:bg-white transition"
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">יומן תורים</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-xl md:text-2xl font-bold text-slate-800">יומן תורים</h1>
         <button
-          onClick={() => {
-            const now = new Date()
-            const end = new Date(now.getTime() + 60 * 60000)
-            setSelectedAppointment(null)
-            setForm({
-              client_id: '', service_id: '', notes: '', status: 'scheduled',
-              start_time: now.toISOString().slice(0, 16),
-              end_time: end.toISOString().slice(0, 16),
-            })
-            setShowForm(true)
-          }}
-          className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 transition text-sm"
+          onClick={() => openNew()}
+          className="flex items-center gap-1.5 bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 transition text-sm"
         >
           <PlusIcon className="w-4 h-4" />
-          תור חדש
+          <span>תור חדש</span>
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-600 rounded-xl px-4 py-3 mb-4 text-sm border border-red-100">
-          {error}
-        </div>
+        <div className="bg-red-50 text-red-600 rounded-xl px-4 py-3 mb-4 text-sm border border-red-100">{error}</div>
       )}
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-2 md:p-4 overflow-hidden">
         <FullCalendar
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="timeGridWeek"
+          initialView={mobile ? 'timeGridDay' : 'timeGridWeek'}
           locale="he"
           direction="rtl"
-          headerToolbar={{
-            right: 'prev,next today',
-            center: 'title',
-            left: 'dayGridMonth,timeGridWeek,timeGridDay'
-          }}
+          headerToolbar={mobile
+            ? { right: 'prev,next', center: 'title', left: 'today' }
+            : { right: 'prev,next today', center: 'title', left: 'dayGridMonth,timeGridWeek,timeGridDay' }
+          }
           buttonText={{ today: 'היום', month: 'חודש', week: 'שבוע', day: 'יום' }}
           events={calendarEvents}
           dateClick={handleDateClick}
@@ -205,118 +198,92 @@ export default function AppointmentsPage() {
         />
       </div>
 
-      {/* Form Modal */}
+      {/* Modal — bottom sheet on mobile, centered on desktop */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
-                <CalendarDaysIcon className="w-5 h-5 text-primary-600" />
-              </div>
-              <h2 className="text-xl font-bold text-slate-800">
-                {selectedAppointment ? 'עריכת תור' : 'תור חדש'}
-              </h2>
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end md:items-center justify-center"
+          onClick={e => e.target === e.currentTarget && setShowForm(false)}
+        >
+          <div className="bg-white w-full md:max-w-md rounded-t-3xl md:rounded-2xl shadow-2xl max-h-[92vh] overflow-y-auto">
+            {/* Mobile drag handle */}
+            <div className="md:hidden flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 bg-slate-200 rounded-full" />
             </div>
-            {error && (
-              <div className="bg-red-50 text-red-600 rounded-xl px-4 py-3 mb-4 text-sm border border-red-100">
-                {error}
+
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
+                  <CalendarDaysIcon className="w-5 h-5 text-primary-600" />
+                </div>
+                <h2 className="text-lg font-bold text-slate-800">
+                  {selectedAppointment ? 'עריכת תור' : 'תור חדש'}
+                </h2>
               </div>
-            )}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">לקוח</label>
-                <select
-                  value={form.client_id}
-                  onChange={e => setForm({ ...form, client_id: e.target.value })}
-                  className={selectClass}
-                >
-                  <option value="">בחר לקוח</option>
-                  {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">שירות</label>
-                <select
-                  value={form.service_id}
-                  onChange={e => handleServiceChange(e.target.value)}
-                  className={selectClass}
-                >
-                  <option value="">בחר שירות</option>
-                  {services.map(s => <option key={s.id} value={s.id}>{s.name} ({s.duration_minutes} דק')</option>)}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+
+              {error && (
+                <div className="bg-red-50 text-red-600 rounded-xl px-4 py-3 mb-4 text-sm border border-red-100">{error}</div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-3.5">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">לקוח</label>
+                  <select value={form.client_id} onChange={e => setForm({ ...form, client_id: e.target.value })} className={selectClass}>
+                    <option value="">בחר לקוח</option>
+                    {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">שירות</label>
+                  <select value={form.service_id} onChange={e => handleServiceChange(e.target.value)} className={selectClass}>
+                    <option value="">בחר שירות</option>
+                    {services.map(s => <option key={s.id} value={s.id}>{s.name} ({s.duration_minutes} דק')</option>)}
+                  </select>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">התחלה</label>
-                  <input
-                    type="datetime-local"
-                    value={form.start_time}
+                  <input type="datetime-local" value={form.start_time}
                     onChange={e => setForm({ ...form, start_time: e.target.value })}
-                    className={selectClass}
-                    required
-                  />
+                    className={selectClass} required />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">סיום</label>
-                  <input
-                    type="datetime-local"
-                    value={form.end_time}
+                  <input type="datetime-local" value={form.end_time}
                     onChange={e => setForm({ ...form, end_time: e.target.value })}
-                    className={selectClass}
-                    required
-                  />
+                    className={selectClass} required />
                 </div>
-              </div>
-              {selectedAppointment && (
+                {selectedAppointment && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">סטטוס</label>
+                    <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className={selectClass}>
+                      {Object.entries(STATUS_LABELS).map(([val, label]) => (
+                        <option key={val} value={val}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">סטטוס</label>
-                  <select
-                    value={form.status}
-                    onChange={e => setForm({ ...form, status: e.target.value })}
-                    className={selectClass}
-                  >
-                    {Object.entries(STATUS_LABELS).map(([val, label]) => (
-                      <option key={val} value={val}>{label}</option>
-                    ))}
-                  </select>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">הערות</label>
+                  <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
+                    rows={2} className={selectClass} placeholder="הערות לתור..." />
                 </div>
-              )}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">הערות</label>
-                <textarea
-                  value={form.notes}
-                  onChange={e => setForm({ ...form, notes: e.target.value })}
-                  rows={2}
-                  className={selectClass}
-                  placeholder="הערות לתור..."
-                />
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 bg-primary-600 text-white py-2.5 rounded-xl font-medium hover:bg-primary-700 transition disabled:opacity-50 text-sm"
-                >
-                  {saving ? 'שומר...' : 'שמור'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl font-medium hover:bg-slate-50 transition text-sm"
-                >
-                  ביטול
-                </button>
-              </div>
-              {selectedAppointment && (
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  className="w-full text-red-400 hover:text-red-600 text-sm py-1 transition"
-                >
-                  מחיקת תור
-                </button>
-              )}
-            </form>
+                <div className="flex gap-3 pt-1">
+                  <button type="submit" disabled={saving}
+                    className="flex-1 bg-primary-600 text-white py-3 rounded-xl font-semibold hover:bg-primary-700 transition disabled:opacity-50 text-sm">
+                    {saving ? 'שומר...' : 'שמור'}
+                  </button>
+                  <button type="button" onClick={() => setShowForm(false)}
+                    className="flex-1 border border-slate-200 text-slate-600 py-3 rounded-xl font-semibold hover:bg-slate-50 transition text-sm">
+                    ביטול
+                  </button>
+                </div>
+                {selectedAppointment && (
+                  <button type="button" onClick={handleDelete}
+                    className="w-full text-red-400 hover:text-red-600 text-sm py-2 transition font-medium">
+                    מחיקת תור
+                  </button>
+                )}
+              </form>
+            </div>
           </div>
         </div>
       )}

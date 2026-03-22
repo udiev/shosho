@@ -55,45 +55,33 @@ export default function DashboardPage() {
     )
   }
 
-  const stats       = data?.stats || {}
-  const todayAppts  = data?.today_appointments || []
+  const stats      = data?.stats || {}
+  const todayAppts = data?.today_appointments || []
 
   const secondaryCards = [
     {
       label: 'תורים מחר',
       value: stats.tomorrow_count ?? 0,
       Icon: CalendarDaysIcon,
-      bg: '#fdf2f8',
-      iconBg: '#fce7f3',
-      iconColor: '#be185d',
-      valueColor: '#9d174d',
+      bg: '#fdf2f8', iconBg: '#fce7f3', iconColor: '#be185d', valueColor: '#9d174d',
     },
     {
       label: 'סה"כ לקוחות',
       value: stats.total_clients ?? 0,
       Icon: UsersIcon,
-      bg: '#faf5ff',
-      iconBg: '#f3e8ff',
-      iconColor: '#7c3aed',
-      valueColor: '#6d28d9',
+      bg: '#faf5ff', iconBg: '#f3e8ff', iconColor: '#7c3aed', valueColor: '#6d28d9',
     },
     {
       label: 'הושלמו החודש',
       value: stats.month_completed ?? 0,
       Icon: CheckCircleIcon,
-      bg: '#f0fdf4',
-      iconBg: '#dcfce7',
-      iconColor: '#16a34a',
-      valueColor: '#15803d',
+      bg: '#f0fdf4', iconBg: '#dcfce7', iconColor: '#16a34a', valueColor: '#15803d',
     },
     {
       label: 'אי הגעות',
       value: stats.month_no_show ?? 0,
       Icon: ExclamationTriangleIcon,
-      bg: '#fffbeb',
-      iconBg: '#fef3c7',
-      iconColor: '#d97706',
-      valueColor: '#b45309',
+      bg: '#fffbeb', iconBg: '#fef3c7', iconColor: '#d97706', valueColor: '#b45309',
     },
   ]
 
@@ -102,34 +90,28 @@ export default function DashboardPage() {
 
       {/* ── Hero banner ── */}
       <div
-        className="relative rounded-3xl p-7 mb-6 overflow-hidden"
+        className="relative rounded-2xl md:rounded-3xl p-5 md:p-7 mb-5 overflow-hidden"
         style={{ background: 'linear-gradient(135deg, #be185d 0%, #db2777 45%, #f472b6 100%)' }}
       >
-        {/* Decorative blobs */}
-        <div className="absolute -top-8 -left-8 w-40 h-40 rounded-full bg-white/10" />
-        <div className="absolute -bottom-10 left-24 w-28 h-28 rounded-full bg-white/10" />
-        <div className="absolute top-4 -left-2 w-14 h-14 rounded-full bg-white/5" />
+        <div className="absolute -top-6 -left-6 w-32 h-32 rounded-full bg-white/10" />
+        <div className="absolute -bottom-8 left-20 w-24 h-24 rounded-full bg-white/10" />
 
-        {/* Greeting */}
-        <div className="relative z-10 mb-5">
-          <p className="text-pink-200 text-sm font-medium">
-            {new Date().toLocaleDateString('he-IL', {
-              weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-            })}
+        <div className="relative z-10 mb-4">
+          <p className="text-pink-200 text-xs font-medium">
+            {new Date().toLocaleDateString('he-IL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
-          <h1 className="text-white text-2xl font-bold mt-1">
+          <h1 className="text-white text-xl md:text-2xl font-bold mt-0.5">
             שלום, {user?.name?.split(' ')[0]} 👋
           </h1>
         </div>
 
-        {/* Embedded key stats */}
-        <div className="relative z-10 flex gap-3 flex-wrap">
-          <div className="bg-white/20 backdrop-blur-sm rounded-2xl px-5 py-3 border border-white/20">
-            <p className="text-white font-bold text-2xl leading-none">{stats.today_count ?? 0}</p>
+        <div className="relative z-10 flex gap-2.5 flex-wrap">
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2.5 border border-white/20">
+            <p className="text-white font-bold text-xl leading-none">{stats.today_count ?? 0}</p>
             <p className="text-pink-100 text-xs mt-1 font-medium">תורים היום</p>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-2xl px-5 py-3 border border-white/20">
-            <p className="text-white font-bold text-2xl leading-none">
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2.5 border border-white/20">
+            <p className="text-white font-bold text-xl leading-none">
               ₪{Number(stats.month_revenue ?? 0).toLocaleString()}
             </p>
             <p className="text-pink-100 text-xs mt-1 font-medium">הכנסה החודש</p>
@@ -137,34 +119,29 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Secondary stat cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      {/* ── Secondary stats ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {secondaryCards.map(card => (
           <div
             key={card.label}
-            className="rounded-2xl p-5 border border-white"
+            className="rounded-2xl p-4 border border-white"
             style={{ backgroundColor: card.bg, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}
           >
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
-              style={{ backgroundColor: card.iconBg }}
-            >
-              <card.Icon className="w-[18px] h-[18px]" style={{ color: card.iconColor }} />
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: card.iconBg }}>
+              <card.Icon className="w-4 h-4" style={{ color: card.iconColor }} />
             </div>
-            <p className="text-2xl font-bold leading-none" style={{ color: card.valueColor }}>
+            <p className="text-xl md:text-2xl font-bold leading-none" style={{ color: card.valueColor }}>
               {card.value}
             </p>
-            <p className="text-xs text-gray-400 mt-1.5 font-medium">{card.label}</p>
+            <p className="text-[11px] text-gray-400 mt-1.5 font-medium leading-tight">{card.label}</p>
           </div>
         ))}
       </div>
 
       {/* ── Today's appointments ── */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
-          <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-between px-4 md:px-6 py-3.5 border-b border-gray-50">
+          <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-primary-50 flex items-center justify-center">
               <CalendarIcon className="w-4 h-4 text-primary-500" />
             </div>
@@ -175,9 +152,8 @@ export default function DashboardPage() {
           </span>
         </div>
 
-        {/* Empty state */}
         {todayAppts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <div className="flex flex-col items-center justify-center py-14 gap-2.5">
             <div className="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center">
               <CalendarIcon className="w-6 h-6 text-primary-300" />
             </div>
@@ -191,40 +167,20 @@ export default function DashboardPage() {
             {todayAppts.map((appt, i) => {
               const sc = STATUS_COLORS[appt.status] || STATUS_COLORS.scheduled
               return (
-                <div
-                  key={appt.id}
-                  className="flex items-center gap-4 px-6 py-3.5 hover:bg-gray-50/60 transition-colors"
-                >
-                  {/* Row number */}
-                  <span className="text-xs text-gray-300 font-medium w-4 flex-shrink-0 text-center">
-                    {i + 1}
-                  </span>
-
-                  {/* Service color bar */}
-                  <div
-                    className="w-1 h-9 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: appt.service_color || '#db2777' }}
-                  />
-
-                  {/* Time */}
-                  <div className="w-14 flex-shrink-0">
+                <div key={appt.id} className="flex items-center gap-3 px-4 md:px-6 py-3 hover:bg-gray-50/60 transition-colors">
+                  <span className="text-xs text-gray-300 font-medium w-4 text-center flex-shrink-0">{i + 1}</span>
+                  <div className="w-1 h-9 rounded-full flex-shrink-0" style={{ backgroundColor: appt.service_color || '#db2777' }} />
+                  <div className="w-12 flex-shrink-0">
                     <p className="text-sm font-bold text-gray-700 leading-none">{formatTime(appt.start_time)}</p>
-                    <p className="text-[11px] text-gray-300 mt-1">{formatTime(appt.end_time)}</p>
+                    <p className="text-[10px] text-gray-300 mt-1">{formatTime(appt.end_time)}</p>
                   </div>
-
-                  {/* Client + service */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 leading-none">{appt.client_name || 'לקוח'}</p>
-                    <p className="text-[11px] text-gray-400 mt-1 truncate">{appt.service_name || 'שירות'}</p>
+                    <p className="text-sm font-semibold text-gray-800 truncate leading-none">{appt.client_name || 'לקוח'}</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5 truncate">{appt.service_name || 'שירות'}</p>
                   </div>
-
-                  {/* Status badge */}
-                  <div
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: sc.bg }}
-                  >
-                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: sc.dot }} />
-                    <span className="text-[11px] font-semibold" style={{ color: sc.text }}>
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-full flex-shrink-0" style={{ backgroundColor: sc.bg }}>
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: sc.dot }} />
+                    <span className="text-[10px] font-semibold hidden sm:block" style={{ color: sc.text }}>
                       {STATUS_LABELS[appt.status]}
                     </span>
                   </div>
@@ -234,7 +190,6 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
-
     </div>
   )
 }
