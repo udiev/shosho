@@ -7,6 +7,7 @@ import DashboardPage from './pages/dashboard/DashboardPage'
 import ServicesPage from './pages/services/ServicesPage'
 import ClientsPage from './pages/clients/ClientsPage'
 import AppointmentsPage from './pages/appointments/AppointmentsPage'
+import SettingsPage from './pages/settings/SettingsPage'
 import AppLayout from './layouts/AppLayout'
 
 function ProtectedRoute({ children }) {
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="services" element={<ServicesPage />} />
         <Route path="clients" element={<ClientsPage />} />
         <Route path="appointments" element={<AppointmentsPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
