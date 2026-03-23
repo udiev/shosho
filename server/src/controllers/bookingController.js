@@ -1,4 +1,5 @@
 const { getPool, sql } = require('../config/db')
+const { getHoursForBusiness } = require('./hoursController')
 
 async function getBusinessBySlug(req, res) {
   try {
@@ -31,8 +32,15 @@ async function getAvailableSlots(req, res) {
       .input('serviceId', sql.UniqueIdentifier, service_id)
       .query('SELECT duration_minutes FROM services WHERE id = @serviceId')
     const duration = serviceResult.recordset[0]?.duration_minutes || 60
-    const dayStart = new Date(date + 'T07:00:00')
-    const dayEnd = new Date(date + 'T21:00:00')
+
+    // Use business hours for the requested day
+    const hours = await getHoursForBusiness(pool, businessId)
+    const dayOfWeek = new Date(date + 'T12:00:00').getDay() // use noon to avoid DST issues
+    const dayHours = hours[dayOfWeek]
+    if (!dayHours.is_open) return res.json([]) // business closed this day
+
+    const dayStart = new Date(date + 'T' + dayHours.open_time + ':00')
+    const dayEnd = new Date(date + 'T' + dayHours.close_time + ':00')
     const existing = await pool.request()
       .input('businessId', sql.UniqueIdentifier, businessId)
       .input('from', sql.DateTime2, dayStart)
