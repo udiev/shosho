@@ -328,7 +328,14 @@ export default function AppointmentsPage() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">התחלה</label>
                   <input type="datetime-local" value={form.start_time}
-                    onChange={e => setForm({ ...form, start_time: e.target.value })}
+                    onChange={e => {
+                      const start = e.target.value
+                      const service = services.find(s => s.id === form.service_id)
+                      const end = service && start
+                        ? new Date(new Date(start).getTime() + service.duration_minutes * 60000).toISOString().slice(0, 16)
+                        : form.end_time
+                      setForm({ ...form, start_time: start, end_time: end })
+                    }}
                     className={selectClass} required />
                 </div>
                 <div>
