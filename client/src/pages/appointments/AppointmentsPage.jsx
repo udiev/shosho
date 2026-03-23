@@ -327,7 +327,7 @@ export default function AppointmentsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">התחלה</label>
-                  <input type="datetime-local" value={form.start_time}
+                  <input type="datetime-local" value={form.start_time} step="300"
                     onChange={e => {
                       const start = e.target.value
                       const service = services.find(s => s.id === form.service_id)
@@ -340,7 +340,7 @@ export default function AppointmentsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">סיום</label>
-                  <input type="datetime-local" value={form.end_time}
+                  <input type="datetime-local" value={form.end_time} step="300"
                     onChange={e => setForm({ ...form, end_time: e.target.value })}
                     className={selectClass} required />
                 </div>
