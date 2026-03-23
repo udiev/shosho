@@ -6,15 +6,26 @@ import {
   UsersIcon,
   ScissorsIcon,
   Cog6ToothIcon,
+  ChartBarIcon,
   ArrowLeftOnRectangleIcon,
 } from '@heroicons/react/24/outline'
 
-const navItems = [
-  { to: '/dashboard',    label: 'בית',      Icon: Squares2X2Icon  },
-  { to: '/appointments', label: 'יומן',     Icon: CalendarDaysIcon },
-  { to: '/clients',      label: 'לקוחות',   Icon: UsersIcon        },
-  { to: '/services',     label: 'שירותים',  Icon: ScissorsIcon     },
-  { to: '/settings',     label: 'הגדרות',   Icon: Cog6ToothIcon    },
+// Desktop sidebar shows all nav items; mobile bottom nav shows 5 (services less needed on mobile)
+const sidebarItems = [
+  { to: '/dashboard',    label: 'בית',       Icon: Squares2X2Icon  },
+  { to: '/appointments', label: 'יומן',      Icon: CalendarDaysIcon },
+  { to: '/clients',      label: 'לקוחות',    Icon: UsersIcon        },
+  { to: '/services',     label: 'שירותים',   Icon: ScissorsIcon     },
+  { to: '/analytics',    label: 'אנליטיקס',  Icon: ChartBarIcon     },
+  { to: '/settings',     label: 'הגדרות',    Icon: Cog6ToothIcon    },
+]
+
+const mobileNavItems = [
+  { to: '/dashboard',    label: 'בית',       Icon: Squares2X2Icon  },
+  { to: '/appointments', label: 'יומן',      Icon: CalendarDaysIcon },
+  { to: '/clients',      label: 'לקוחות',    Icon: UsersIcon        },
+  { to: '/analytics',    label: 'אנליטיקס',  Icon: ChartBarIcon     },
+  { to: '/settings',     label: 'הגדרות',    Icon: Cog6ToothIcon    },
 ]
 
 export default function AppLayout() {
@@ -44,7 +55,7 @@ export default function AppLayout() {
 
         {/* Nav */}
         <nav className="flex-1 px-3 space-y-0.5">
-          {navItems.map(({ to, label, Icon }) => (
+          {sidebarItems.map(({ to, label, Icon }) => (
             <NavLink
               key={to}
               to={to}
@@ -114,7 +125,7 @@ export default function AppLayout() {
 
       {/* ── Mobile bottom nav ── */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-100 z-50 flex" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-        {navItems.map(({ to, label, Icon }) => (
+        {mobileNavItems.map(({ to, label, Icon }) => (
           <NavLink
             key={to}
             to={to}

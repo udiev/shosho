@@ -8,6 +8,7 @@ import ServicesPage from './pages/services/ServicesPage'
 import ClientsPage from './pages/clients/ClientsPage'
 import AppointmentsPage from './pages/appointments/AppointmentsPage'
 import SettingsPage from './pages/settings/SettingsPage'
+import AnalyticsPage from './pages/analytics/AnalyticsPage'
 import BookingPage from './pages/booking/BookingPage'
 import AppLayout from './layouts/AppLayout'
 
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="services" element={<ServicesPage />} />
         <Route path="clients" element={<ClientsPage />} />
         <Route path="appointments" element={<AppointmentsPage />} />
+        <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
 
