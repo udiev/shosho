@@ -5,6 +5,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import api from '../../services/api'
 import { PlusIcon, CalendarDaysIcon, ClockIcon } from '@heroicons/react/24/outline'
+import DateTimePicker from '../../components/DateTimePicker'
 
 const STATUS_LABELS = {
   scheduled: 'מתוזמן',
@@ -332,22 +333,27 @@ export default function AppointmentsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">התחלה</label>
-                  <input type="datetime-local" value={form.start_time} step="300"
-                    onChange={e => {
-                      const start = e.target.value
+                  <DateTimePicker
+                    value={form.start_time}
+                    required
+                    className={selectClass}
+                    onChange={start => {
                       const service = services.find(s => s.id === form.service_id)
                       const end = service && start
                         ? toLocalISO(new Date(new Date(start).getTime() + service.duration_minutes * 60000))
                         : form.end_time
                       setForm({ ...form, start_time: start, end_time: end })
                     }}
-                    className={selectClass} required />
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">סיום</label>
-                  <input type="datetime-local" value={form.end_time} step="300"
-                    onChange={e => setForm({ ...form, end_time: e.target.value })}
-                    className={selectClass} required />
+                  <DateTimePicker
+                    value={form.end_time}
+                    required
+                    className={selectClass}
+                    onChange={end_time => setForm({ ...form, end_time })}
+                  />
                 </div>
                 {selectedAppointment && (
                   <div>
