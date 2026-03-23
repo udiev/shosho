@@ -1,0 +1,14 @@
+<svg width="320" height="64" viewBox="0 0 320 64" xmlns="http://www.w3.org/2000/svg">
+  <rect width="320" height="64" rx="14" fill="#C2185B"/>
+  <rect x="12" y="10" width="44" height="44" rx="12" fill="white" opacity="0.2"/>
+  <ellipse cx="34" cy="20" rx="6" ry="10" fill="white" opacity="0.9" transform="rotate(0 34 32)"/>
+  <ellipse cx="34" cy="20" rx="6" ry="10" fill="white" opacity="0.9" transform="rotate(60 34 32)"/>
+  <ellipse cx="34" cy="20" rx="6" ry="10" fill="white" opacity="0.9" transform="rotate(120 34 32)"/>
+  <ellipse cx="34" cy="20" rx="6" ry="10" fill="white" opacity="0.9" transform="rotate(180 34 32)"/>
+  <ellipse cx="34" cy="20" rx="6" ry="10" fill="white" opacity="0.9" transform="rotate(240 34 32)"/>
+  <ellipse cx="34" cy="20" rx="6" ry="10" fill="white" opacity="0.9" transform="rotate(300 34 32)"/>
+  <circle cx="34" cy="32" r="7" fill="white"/>
+  <circle cx="34" cy="32" r="3" fill="#C2185B"/>
+  <text x="68" y="30" font-family="Arial, sans-serif" font-size="24" font-weight="600" fill="white">שושו</text>
+  <text x="68" y="50" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="white" opacity="0.85">ניהול תורים חכם</text>
+</svg>

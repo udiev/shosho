@@ -52,4 +52,43 @@ async function sendPasswordReset(toEmail, resetLink) {
   })
 }
 
-module.exports = { sendPasswordReset }
+async function sendInvite(toEmail, name, inviteLink) {
+  const transporter = createTransporter()
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@shosho.app'
+
+  if (!transporter) {
+    console.log(`\n📧 Invite link for ${toEmail}:\n${inviteLink}\n`)
+    return
+  }
+
+  await transporter.sendMail({
+    from: `"שושו" <${from}>`,
+    to: toEmail,
+    subject: 'הוזמנת להצטרף לשושו',
+    html: `
+      <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+        <div style="text-align: center; margin-bottom: 32px;">
+          <div style="display: inline-block; width: 56px; height: 56px; border-radius: 16px;
+            background: linear-gradient(135deg, #f472b6, #be185d); text-align: center;
+            line-height: 56px; font-size: 24px; font-weight: 900; color: white;">ש</div>
+          <h1 style="color: #1e293b; font-size: 20px; margin: 16px 0 4px;">הוזמנת לשושו</h1>
+          <p style="color: #94a3b8; font-size: 14px; margin: 0;">הגדר סיסמה והתחל לעבוד</p>
+        </div>
+        <p style="color: #475569; font-size: 15px; line-height: 1.6;">
+          שלום ${name},<br/>
+          הוזמנת לעבוד במערכת ניהול התורים <strong>שושו</strong>.<br/>
+          לחץ על הכפתור כדי להגדיר סיסמה ולהתחיל. הקישור בתוקף ל<strong>7 ימים</strong>.
+        </p>
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${inviteLink}" style="display: inline-block; background: linear-gradient(135deg, #db2777, #be185d);
+            color: white; text-decoration: none; padding: 14px 36px; border-radius: 12px;
+            font-size: 15px; font-weight: 600;">הגדרת סיסמה והתחברות</a>
+        </div>
+        <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 24px 0;" />
+        <p style="color: #cbd5e1; font-size: 12px; text-align: center;">שושו — ניהול תורים</p>
+      </div>
+    `,
+  })
+}
+
+module.exports = { sendPasswordReset, sendInvite }

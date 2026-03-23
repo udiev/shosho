@@ -10,6 +10,7 @@ const statsRoutes = require('./routes/stats')
 const businessRoutes = require('./routes/business')
 const bookingRoutes = require('./routes/booking')
 const availabilityRoutes = require('./routes/availability')
+const teamRoutes = require('./routes/team')
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -29,6 +30,7 @@ app.use('/api/stats', statsRoutes)
 app.use('/api/business', businessRoutes)
 app.use('/api/book', bookingRoutes)
 app.use('/api/availability', availabilityRoutes)
+app.use('/api/team', teamRoutes)
 
 async function start() {
   try {

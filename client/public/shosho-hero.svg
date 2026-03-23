@@ -1,0 +1,14 @@
+<svg width="480" height="120" viewBox="0 0 480 120" xmlns="http://www.w3.org/2000/svg">
+  <rect width="480" height="120" rx="20" fill="#FCE4EC"/>
+  <rect x="20" y="20" width="80" height="80" rx="22" fill="#C2185B"/>
+  <ellipse cx="60" cy="36" rx="10" ry="18" fill="white" opacity="0.9" transform="rotate(0 60 60)"/>
+  <ellipse cx="60" cy="36" rx="10" ry="18" fill="white" opacity="0.9" transform="rotate(60 60 60)"/>
+  <ellipse cx="60" cy="36" rx="10" ry="18" fill="white" opacity="0.9" transform="rotate(120 60 60)"/>
+  <ellipse cx="60" cy="36" rx="10" ry="18" fill="white" opacity="0.9" transform="rotate(180 60 60)"/>
+  <ellipse cx="60" cy="36" rx="10" ry="18" fill="white" opacity="0.9" transform="rotate(240 60 60)"/>
+  <ellipse cx="60" cy="36" rx="10" ry="18" fill="white" opacity="0.9" transform="rotate(300 60 60)"/>
+  <circle cx="60" cy="60" r="14" fill="white"/>
+  <circle cx="60" cy="60" r="6" fill="#C2185B"/>
+  <text x="120" y="68" font-family="Arial, sans-serif" font-size="52" font-weight="600" fill="#C2185B">שושו</text>
+  <text x="122" y="95" font-family="Arial, sans-serif" font-size="16" font-weight="400" fill="#888">פלטפורמת ניהול תורים לעסקים קטנים</text>
+</svg>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../../services/api'
-import { LinkIcon, CheckIcon } from '@heroicons/react/24/outline'
+import { LinkIcon, CheckIcon, PlusIcon, TrashIcon, UsersIcon } from '@heroicons/react/24/outline'
+import { useAuth } from '../../context/AuthContext'
 
 const THEMES = [
   { name: 'ורוד', primary: '#C2185B', secondary: '#F8BBD0' },
@@ -21,6 +22,9 @@ const DEFAULT_HOURS = DAY_NAMES.map((_, i) => ({
 }))
 
 export default function SettingsPage() {
+  const { user } = useAuth()
+  const isOwner = user?.role === 'owner'
+
   const [business, setBusiness] = useState(null)
   const [form, setForm] = useState({
     name: '', phone: '', address: '', description: '',
@@ -36,8 +40,18 @@ export default function SettingsPage() {
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
 
+  // Team members
+  const [team, setTeam] = useState([])
+  const [teamForm, setTeamForm] = useState({ name: '', email: '' })
+  const [showTeamForm, setShowTeamForm] = useState(false)
+  const [savingTeam, setSavingTeam] = useState(false)
+  const [teamError, setTeamError] = useState('')
+  const [teamSuccess, setTeamSuccess] = useState('')
+
   useEffect(() => {
-    Promise.all([fetchBusiness(), fetchHours()]).finally(() => setLoading(false))
+    const calls = [fetchBusiness(), fetchHours()]
+    if (isOwner) calls.push(fetchTeam())
+    Promise.all(calls).finally(() => setLoading(false))
   }, [])
 
   async function fetchBusiness() {
@@ -64,6 +78,42 @@ export default function SettingsPage() {
       setHours(res.data)
     } catch {
       // keep defaults
+    }
+  }
+
+  async function fetchTeam() {
+    try {
+      const res = await api.get('/api/team')
+      setTeam(res.data)
+    } catch {}
+  }
+
+  async function handleAddTeamMember(e) {
+    e.preventDefault()
+    setSavingTeam(true)
+    setTeamError('')
+    setTeamSuccess('')
+    try {
+      const res = await api.post('/api/team', teamForm)
+      setTeam(prev => [...prev, res.data])
+      setTeamForm({ name: '', email: '' })
+      setShowTeamForm(false)
+      setTeamSuccess(`הזמנה נשלחה ל-${teamForm.email}`)
+      setTimeout(() => setTeamSuccess(''), 5000)
+    } catch (err) {
+      setTeamError(err.response?.data?.error || 'שגיאה בהוספת חבר צוות')
+    } finally {
+      setSavingTeam(false)
+    }
+  }
+
+  async function handleRemoveTeamMember(id, name) {
+    if (!confirm(`להסיר את ${name} מהצוות?`)) return
+    try {
+      await api.delete(`/api/team/${id}`)
+      setTeam(prev => prev.filter(m => m.id !== id))
+    } catch {
+      setTeamError('שגיאה בהסרת חבר צוות')
     }
   }
 
@@ -341,6 +391,98 @@ export default function SettingsPage() {
           </button>
         </div>
       </div>
+
+      {/* Team members — owner only */}
+      {isOwner && (
+        <div className="mt-5 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <UsersIcon className="w-4 h-4 text-slate-400" />
+              <h2 className="font-semibold text-slate-700 text-sm">חברי צוות</h2>
+            </div>
+            <button
+              onClick={() => { setShowTeamForm(f => !f); setTeamError('') }}
+              className="flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700 transition"
+            >
+              <PlusIcon className="w-3.5 h-3.5" />
+              הוסף
+            </button>
+          </div>
+
+          {(teamError || teamSuccess) && (
+            <div className={`mx-6 mt-4 rounded-xl px-4 py-2.5 text-sm border ${teamError ? 'bg-red-50 text-red-600 border-red-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}`}>
+              {teamError || teamSuccess}
+            </div>
+          )}
+
+          {showTeamForm && (
+            <form onSubmit={handleAddTeamMember} className="px-6 pt-4 pb-2 border-b border-slate-50 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">שם מלא</label>
+                  <input
+                    type="text" required value={teamForm.name}
+                    onChange={e => setTeamForm(f => ({ ...f, name: e.target.value }))}
+                    placeholder="ישראל ישראלי"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">אימייל</label>
+                  <input
+                    type="email" required value={teamForm.email}
+                    onChange={e => setTeamForm(f => ({ ...f, email: e.target.value }))}
+                    placeholder="staff@email.com"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 pb-2">
+                <button type="submit" disabled={savingTeam}
+                  className="flex-1 bg-primary-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50">
+                  {savingTeam ? 'שולח הזמנה...' : 'שלח הזמנה'}
+                </button>
+                <button type="button" onClick={() => setShowTeamForm(false)}
+                  className="flex-1 border border-slate-200 text-slate-600 py-2 rounded-xl text-sm font-medium hover:bg-slate-50 transition">
+                  ביטול
+                </button>
+              </div>
+            </form>
+          )}
+
+          {team.length === 0 ? (
+            <div className="flex flex-col items-center py-8 gap-2 text-center">
+              <UsersIcon className="w-8 h-8 text-slate-200" />
+              <p className="text-sm text-slate-400">אין חברי צוות עדיין</p>
+              <p className="text-xs text-slate-300">הזמן פקידה או שותף לעבוד על המערכת</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-50">
+              {team.map(member => (
+                <div key={member.id} className="flex items-center gap-3 px-6 py-3.5">
+                  <div className="w-9 h-9 rounded-full bg-primary-50 flex items-center justify-center font-bold text-primary-600 text-sm flex-shrink-0">
+                    {member.name.charAt(0)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-slate-800">{member.name}</p>
+                    <p className="text-xs text-slate-400 truncate">{member.email}</p>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveTeamMember(member.id, member.name)}
+                    className="text-slate-300 hover:text-red-400 transition p-1"
+                    title="הסר מהצוות"
+                  >
+                    <TrashIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="px-6 py-3 text-xs text-slate-400 border-t border-slate-50">
+            חברי הצוות רואים ומנהלים את הנתונים של העסק שלך. לא ניתן להם גישה להגדרות או ניהול צוות.
+          </p>
+        </div>
+      )}
     </div>
   )
 }
