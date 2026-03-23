@@ -78,9 +78,20 @@ export default function AppointmentsPage() {
     setShowForm(true)
   }
 
+  // Click on empty slot → open new appointment at that exact time
   function handleDateClick(info) {
-    const start = new Date(info.dateStr + 'T09:00:00')
-    openNew(start.toISOString())
+    openNew(info.date.toISOString())
+  }
+
+  // Drag to select a time range → open new appointment with start/end prefilled
+  function handleSelect(info) {
+    setSelectedAppointment(null)
+    setForm({
+      client_id: '', service_id: '', notes: '', status: 'scheduled',
+      start_time: new Date(info.start).toISOString().slice(0, 16),
+      end_time: new Date(info.end).toISOString().slice(0, 16),
+    })
+    setShowForm(true)
   }
 
   function handleEventClick(info) {
@@ -182,12 +193,16 @@ export default function AppointmentsPage() {
           locale="he"
           direction="rtl"
           headerToolbar={mobile
-            ? { right: 'prev,next', center: 'title', left: 'today' }
+            ? { right: 'prev,next', center: 'title', left: 'timeGridDay,timeGridWeek' }
             : { right: 'prev,next today', center: 'title', left: 'dayGridMonth,timeGridWeek,timeGridDay' }
           }
           buttonText={{ today: 'היום', month: 'חודש', week: 'שבוע', day: 'יום' }}
           events={calendarEvents}
+          selectable={true}
+          selectMirror={true}
+          unselectAuto={true}
           dateClick={handleDateClick}
+          select={handleSelect}
           eventClick={handleEventClick}
           slotMinTime="07:00:00"
           slotMaxTime="22:00:00"
