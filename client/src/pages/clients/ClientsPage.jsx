@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
-import { MagnifyingGlassIcon, PlusIcon, ArrowUpTrayIcon, UsersIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, PlusIcon, ArrowUpTrayIcon, UsersIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 export default function ClientsPage() {
+  const navigate = useNavigate()
   const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -208,14 +210,19 @@ export default function ClientsPage() {
           <div className="divide-y divide-slate-50">
             {clients.map(client => (
               <div key={client.id}
-                className="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 transition-colors active:bg-slate-100"
-                onClick={() => openEdit(client)}
+                className="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 transition-colors active:bg-slate-100 cursor-pointer"
+                onClick={() => navigate(`/clients/${client.id}`)}
               >
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-base flex-shrink-0 ${avatarColor(client.name)}`}>
                   {client.name.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-800 text-sm">{client.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-slate-800 text-sm">{client.name}</p>
+                    {client.at_risk && (
+                      <ExclamationTriangleIcon className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" title="לא היה זמן" />
+                    )}
+                  </div>
                   <p className="text-xs text-slate-400 truncate mt-0.5">
                     {[client.phone, client.email].filter(Boolean).join(' · ')}
                   </p>

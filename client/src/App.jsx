@@ -8,6 +8,7 @@ import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import ServicesPage from './pages/services/ServicesPage'
 import ClientsPage from './pages/clients/ClientsPage'
+import ClientDetailPage from './pages/clients/ClientDetailPage'
 import AppointmentsPage from './pages/appointments/AppointmentsPage'
 import SettingsPage from './pages/settings/SettingsPage'
 import AnalyticsPage from './pages/analytics/AnalyticsPage'
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="services" element={<ServicesPage />} />
         <Route path="clients" element={<ClientsPage />} />
+        <Route path="clients/:id" element={<ClientDetailPage />} />
         <Route path="appointments" element={<AppointmentsPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="settings" element={<SettingsPage />} />
