@@ -3,6 +3,8 @@ import { useAuth } from './context/AuthContext'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
+import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import ServicesPage from './pages/services/ServicesPage'
 import ClientsPage from './pages/clients/ClientsPage'
@@ -28,6 +30,8 @@ export default function App() {
       <Route path="/" element={<PublicOnlyRoute><LandingPage /></PublicOnlyRoute>} />
       <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
       <Route path="/register" element={<PublicOnlyRoute><RegisterPage /></PublicOnlyRoute>} />
+      <Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPasswordPage /></PublicOnlyRoute>} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/book/:slug" element={<BookingPage />} />
 
       <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>

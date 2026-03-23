@@ -68,10 +68,16 @@ export default function LoginPage() {
               />
             </div>
 
+            <div className="flex justify-end">
+              <Link to="/forgot-password" className="text-xs text-slate-400 hover:text-primary-600 transition">
+                שכחת סיסמה?
+              </Link>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary-600 text-white py-2.5 rounded-xl font-medium hover:bg-primary-700 transition disabled:opacity-50 text-sm mt-2"
+              className="w-full bg-primary-600 text-white py-2.5 rounded-xl font-medium hover:bg-primary-700 transition disabled:opacity-50 text-sm"
             >
               {loading ? 'מתחבר...' : 'התחבר'}
             </button>
