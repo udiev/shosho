@@ -34,6 +34,8 @@ async function start() {
     app.listen(PORT, () => {
       console.log(`🌸 Shosho server running on port ${PORT}`)
     })
+    const { startRemindersJob } = require('./jobs/reminders')
+    startRemindersJob()
   } catch (err) {
     console.error('❌ Failed to connect to DB:', err.message)
     process.exit(1)

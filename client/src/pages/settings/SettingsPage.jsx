@@ -24,7 +24,8 @@ export default function SettingsPage() {
   const [business, setBusiness] = useState(null)
   const [form, setForm] = useState({
     name: '', phone: '', address: '', description: '',
-    primary_color: '#C2185B', secondary_color: '#F8BBD0'
+    primary_color: '#C2185B', secondary_color: '#F8BBD0',
+    reminders_enabled: true,
   })
   const [hours, setHours] = useState(DEFAULT_HOURS)
   const [loading, setLoading] = useState(true)
@@ -50,6 +51,7 @@ export default function SettingsPage() {
         description: res.data.description || '',
         primary_color: res.data.primary_color || '#C2185B',
         secondary_color: res.data.secondary_color || '#F8BBD0',
+        reminders_enabled: res.data.reminders_enabled !== false,
       })
     } catch {
       setError('שגיאה בטעינת פרטי העסק')
@@ -243,6 +245,39 @@ export default function SettingsPage() {
             </div>
           </div>
         )}
+
+        {/* Reminders */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100">
+            <h2 className="font-semibold text-slate-700 text-sm">תזכורות ללקוחות</h2>
+          </div>
+          <div className="p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-slate-700">שלח תזכורת SMS/WhatsApp</p>
+                <p className="text-xs text-slate-400 mt-0.5">24 שעות לפני כל תור — אוטומטי</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, reminders_enabled: !f.reminders_enabled }))}
+                className="relative flex-shrink-0 rounded-full transition-colors"
+                style={{ width: 44, height: 24, backgroundColor: form.reminders_enabled ? '#db2777' : '#e2e8f0' }}
+              >
+                <span
+                  className="absolute top-0.5 rounded-full bg-white shadow transition-all"
+                  style={{ width: 20, height: 20, right: form.reminders_enabled ? 2 : 22 }}
+                />
+              </button>
+            </div>
+            {form.reminders_enabled && (
+              <div className="mt-4 bg-primary-50 rounded-xl px-4 py-3 text-xs text-primary-700 leading-relaxed">
+                <strong>להפעלה:</strong> הגדר את משתני הסביבה בשרת:<br />
+                <code className="font-mono">TWILIO_ACCOUNT_SID</code>, <code className="font-mono">TWILIO_AUTH_TOKEN</code>, <code className="font-mono">TWILIO_FROM</code><br />
+                לWhatsApp: הגדר <code className="font-mono">TWILIO_FROM=whatsapp:+14155238886</code>
+              </div>
+            )}
+          </div>
+        </div>
 
         <button type="submit" disabled={saving}
           className="w-full bg-primary-600 text-white py-3 rounded-xl font-medium hover:bg-primary-700 transition disabled:opacity-50 text-sm">
