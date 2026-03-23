@@ -54,24 +54,27 @@ async function getDashboardStats(req, res) {
            AND status = 'no_show') as month_no_show
       `)
 
-    const todayAppts = await pool.request()
+    const now = new Date()
+    const upcomingAppts = await pool.request()
       .input('businessId', sql.UniqueIdentifier, businessId)
-      .input('today', sql.DateTime2, today)
-      .input('tomorrow', sql.DateTime2, tomorrow)
+      .input('now', sql.DateTime2, now)
       .query(`
-        SELECT a.*, c.name as client_name, s.name as service_name, s.color as service_color
+        SELECT TOP 10
+          a.id, a.start_time, a.end_time, a.status, a.notes,
+          c.name as client_name, c.phone as client_phone, c.id as client_id,
+          s.name as service_name, s.color as service_color, s.price
         FROM appointments a
         LEFT JOIN clients c ON a.client_id = c.id
         LEFT JOIN services s ON a.service_id = s.id
         WHERE a.business_id = @businessId
-        AND a.start_time >= @today AND a.start_time < @tomorrow
-        AND a.status != 'cancelled'
+          AND a.start_time >= @now
+          AND a.status IN ('scheduled', 'confirmed')
         ORDER BY a.start_time ASC
       `)
 
     res.json({
       stats: result.recordset[0],
-      today_appointments: todayAppts.recordset
+      upcoming_appointments: upcomingAppts.recordset,
     })
   } catch (err) {
     console.error(err)
