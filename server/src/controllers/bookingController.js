@@ -1,6 +1,48 @@
 const { getPool, sql } = require('../config/db')
 const { getHoursForBusiness } = require('./hoursController')
 
+// Compact scheduling: only offer slots adjacent to existing appointments.
+// If no appointments yet in the window, offer all 30-min slots from window start.
+function compactSlots(winStart, winEnd, durMin, existing) {
+  const durMs = durMin * 60000
+  const inWindow = existing.filter(a => {
+    const s = new Date(a.start_time)
+    return s >= winStart && s < winEnd
+  })
+
+  if (inWindow.length === 0) {
+    // Window is empty — offer all slots from the start
+    const slots = []
+    const cur = new Date(winStart)
+    while (cur.getTime() + durMs <= winEnd.getTime()) {
+      slots.push({ start: new Date(cur), end: new Date(cur.getTime() + durMs) })
+      cur.setMinutes(cur.getMinutes() + 30)
+    }
+    return slots
+  }
+
+  // Find the span of booked appointments in this window
+  const sorted = [...inWindow].sort((a, b) => new Date(a.start_time) - new Date(b.start_time))
+  const firstStart = new Date(sorted[0].start_time)
+  const lastEnd   = new Date(sorted[sorted.length - 1].end_time)
+
+  const slots = []
+
+  // Slot immediately BEFORE the first appointment
+  const beforeStart = new Date(firstStart.getTime() - durMs)
+  if (beforeStart >= winStart) {
+    slots.push({ start: beforeStart, end: firstStart })
+  }
+
+  // Slot immediately AFTER the last appointment
+  const afterEnd = new Date(lastEnd.getTime() + durMs)
+  if (afterEnd <= winEnd) {
+    slots.push({ start: lastEnd, end: afterEnd })
+  }
+
+  return slots
+}
+
 async function getBusinessBySlug(req, res) {
   try {
     const pool = await getPool()
@@ -33,38 +75,72 @@ async function getAvailableSlots(req, res) {
       .query('SELECT duration_minutes FROM services WHERE id = @serviceId')
     const duration = serviceResult.recordset[0]?.duration_minutes || 60
 
-    // Use business hours for the requested day
-    const hours = await getHoursForBusiness(pool, businessId)
-    const dayOfWeek = new Date(date + 'T12:00:00').getDay() // use noon to avoid DST issues
-    const dayHours = hours[dayOfWeek]
-    if (!dayHours.is_open) return res.json([]) // business closed this day
-
-    const dayStart = new Date(date + 'T' + dayHours.open_time + ':00')
-    const dayEnd = new Date(date + 'T' + dayHours.close_time + ':00')
+    // Fetch all existing appointments for the day (used for conflict + compact checks)
+    const dayFull = new Date(date + 'T00:00:00')
+    const dayEnd  = new Date(date + 'T23:59:59')
     const existing = await pool.request()
       .input('businessId', sql.UniqueIdentifier, businessId)
-      .input('from', sql.DateTime2, dayStart)
-      .input('to', sql.DateTime2, dayEnd)
-      .query('SELECT start_time, end_time FROM appointments WHERE business_id = @businessId AND start_time >= @from AND start_time <= @to AND status NOT IN (\'cancelled\')')
+      .input('from', sql.DateTime2, dayFull)
+      .input('to',   sql.DateTime2, dayEnd)
+      .query(`SELECT start_time, end_time FROM appointments
+              WHERE business_id = @businessId
+                AND start_time >= @from AND start_time <= @to
+                AND status NOT IN ('cancelled')`)
+
+    // Check for explicit availability windows for this day
+    let avResult
+    try {
+      avResult = await pool.request()
+        .input('businessId', sql.UniqueIdentifier, businessId)
+        .input('date', sql.Date, date)
+        .query(`SELECT start_time, end_time FROM availability_slots
+                WHERE business_id = @businessId AND date = @date
+                ORDER BY start_time`)
+    } catch {
+      avResult = { recordset: [] }
+    }
+
+    const toSlot = s => ({
+      start: s.start.toISOString(),
+      end:   s.end.toISOString(),
+      label: s.start.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }),
+    })
+
+    if (avResult.recordset.length > 0) {
+      // Explicit availability windows exist → use compact scheduling per window
+      const slots = []
+      for (const win of avResult.recordset) {
+        const winStart = new Date(date + 'T' + win.start_time + ':00')
+        const winEnd   = new Date(date + 'T' + win.end_time   + ':00')
+        compactSlots(winStart, winEnd, duration, existing.recordset)
+          .filter(s => !existing.recordset.some(a =>
+            s.start < new Date(a.end_time) && s.end > new Date(a.start_time)))
+          .forEach(s => slots.push(toSlot(s)))
+      }
+      return res.json(slots)
+    }
+
+    // No availability windows — fall back to business hours, all 30-min slots
+    const hours = await getHoursForBusiness(pool, businessId)
+    const dayOfWeek = new Date(date + 'T12:00:00').getDay()
+    const dayHours = hours[dayOfWeek]
+    if (!dayHours.is_open) return res.json([])
+
+    const start = new Date(date + 'T' + dayHours.open_time  + ':00')
+    const end   = new Date(date + 'T' + dayHours.close_time + ':00')
     const slots = []
-    const current = new Date(dayStart)
-    while (current < dayEnd) {
-      const slotEnd = new Date(current.getTime() + duration * 60000)
-      if (slotEnd <= dayEnd) {
-        const conflict = existing.recordset.some(appt => {
-          const s = new Date(appt.start_time)
-          const e = new Date(appt.end_time)
-          return current < e && slotEnd > s
-        })
+    const cur = new Date(start)
+    while (cur < end) {
+      const slotEnd = new Date(cur.getTime() + duration * 60000)
+      if (slotEnd <= end) {
+        const conflict = existing.recordset.some(a =>
+          cur < new Date(a.end_time) && slotEnd > new Date(a.start_time))
         if (!conflict) {
-          slots.push({
-            start: current.toISOString(),
-            end: slotEnd.toISOString(),
-            label: current.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
-          })
+          slots.push({ start: cur.toISOString(), end: slotEnd.toISOString(),
+            label: cur.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) })
         }
       }
-      current.setMinutes(current.getMinutes() + 30)
+      cur.setMinutes(cur.getMinutes() + 30)
     }
     res.json(slots)
   } catch (err) {
