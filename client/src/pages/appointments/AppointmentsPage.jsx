@@ -143,12 +143,17 @@ export default function AppointmentsPage() {
     setShowForm(true)
   }
 
+  function toLocalISO(date) {
+    const off = date.getTimezoneOffset() * 60000
+    return new Date(date.getTime() - off).toISOString().slice(0, 16)
+  }
+
   function handleServiceChange(serviceId) {
     const service = services.find(s => s.id === serviceId)
     if (service && form.start_time) {
       const start = new Date(form.start_time)
       const end   = new Date(start.getTime() + service.duration_minutes * 60000)
-      setForm(f => ({ ...f, service_id: serviceId, end_time: end.toISOString().slice(0, 16) }))
+      setForm(f => ({ ...f, service_id: serviceId, end_time: toLocalISO(end) }))
     } else {
       setForm(f => ({ ...f, service_id: serviceId }))
     }
@@ -332,7 +337,7 @@ export default function AppointmentsPage() {
                       const start = e.target.value
                       const service = services.find(s => s.id === form.service_id)
                       const end = service && start
-                        ? new Date(new Date(start).getTime() + service.duration_minutes * 60000).toISOString().slice(0, 16)
+                        ? toLocalISO(new Date(new Date(start).getTime() + service.duration_minutes * 60000))
                         : form.end_time
                       setForm({ ...form, start_time: start, end_time: end })
                     }}
