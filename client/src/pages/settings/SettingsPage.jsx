@@ -171,21 +171,33 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl">
-      <div className="mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-slate-800">הגדרות עסק</h1>
-        <p className="text-sm text-slate-400 mt-1">נהל את פרטי העסק והמיתוג שלך</p>
+
+      {/* Sticky header with save button */}
+      <div className="sticky top-0 md:top-0 z-30 bg-gray-50/95 backdrop-blur-sm border-b border-slate-100 -mx-4 md:-mx-8 px-4 md:px-8 py-3 mb-5 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-lg font-bold text-slate-800">הגדרות עסק</h1>
+        </div>
+        <div className="flex items-center gap-3">
+          {saved && (
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
+              <CheckIcon className="w-3.5 h-3.5" />נשמר
+            </span>
+          )}
+          {error && (
+            <span className="text-xs font-medium text-red-500">{error}</span>
+          )}
+          <button
+            form="business-form"
+            type="submit"
+            disabled={saving}
+            className="flex items-center gap-1.5 bg-primary-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-700 transition disabled:opacity-50 text-sm shadow-sm"
+          >
+            {saving ? 'שומר...' : 'שמור שינויים'}
+          </button>
+        </div>
       </div>
 
-      {error && (
-        <div className="bg-red-50 text-red-600 rounded-xl px-4 py-3 mb-5 text-sm border border-red-100">{error}</div>
-      )}
-      {saved && (
-        <div className="bg-emerald-50 text-emerald-700 rounded-xl px-4 py-3 mb-5 text-sm border border-emerald-100 flex items-center gap-2">
-          <CheckIcon className="w-4 h-4" />הפרטים נשמרו בהצלחה
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form id="business-form" onSubmit={handleSubmit} className="space-y-5">
         {/* Business details */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-100">
@@ -369,10 +381,6 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <button type="submit" disabled={saving}
-          className="w-full bg-primary-600 text-white py-3 rounded-xl font-medium hover:bg-primary-700 transition disabled:opacity-50 text-sm">
-          {saving ? 'שומר...' : 'שמור שינויים'}
-        </button>
       </form>
 
       {/* Business hours — separate section, separate save */}
