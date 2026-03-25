@@ -46,7 +46,7 @@ async function updateBusiness(req, res) {
       .input('primaryColor', sql.NVarChar, primary_color || '#C2185B')
       .input('secondaryColor', sql.NVarChar, secondary_color || '#F8BBD0')
       .input('remindersEnabled', sql.Bit, reminders_enabled !== false ? 1 : 0)
-      .input('logoUrl', sql.NVarChar, logo_url || null)
+      .input('logoUrl', sql.NVarChar(sql.MAX), logo_url || null)
       .query(`
         UPDATE businesses
         SET name=@name, phone=@phone, address=@address, description=@description,
