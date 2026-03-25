@@ -23,11 +23,17 @@ export function AuthProvider({ children }) {
 
   async function login(email, password) {
     const res = await axios.post(`${API}/auth/login`, { email, password })
-    const { token, user, businessId } = res.data
+    const { token, user } = res.data
     localStorage.setItem('token', token)
     localStorage.setItem('user', JSON.stringify(user))
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
     setUser(user)
+    // Fetch full business data (includes logo, colors, etc.)
+    try {
+      const bizRes = await axios.get(`${API}/business`)
+      localStorage.setItem('business', JSON.stringify(bizRes.data))
+      setBusiness(bizRes.data)
+    } catch {}
     return res.data
   }
 
@@ -43,6 +49,12 @@ export function AuthProvider({ children }) {
     return res.data
   }
 
+  function updateBusiness(data) {
+    const updated = { ...business, ...data }
+    setBusiness(updated)
+    localStorage.setItem('business', JSON.stringify(updated))
+  }
+
   function logout() {
     localStorage.clear()
     delete axios.defaults.headers.common['Authorization']
@@ -51,7 +63,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, business, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, business, loading, login, register, logout, updateBusiness }}>
       {!loading && children}
     </AuthContext.Provider>
   )

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import api from '../../services/api'
 import { LinkIcon, CheckIcon, PlusIcon, TrashIcon, UsersIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../../context/AuthContext'
+import { PhotoIcon } from '@heroicons/react/24/outline'
 
 const THEMES = [
   { name: 'ורוד', primary: '#C2185B', secondary: '#F8BBD0' },
@@ -22,14 +23,14 @@ const DEFAULT_HOURS = DAY_NAMES.map((_, i) => ({
 }))
 
 export default function SettingsPage() {
-  const { user } = useAuth()
+  const { user, business: bizCtx, updateBusiness: updateBizCtx } = useAuth()
   const isOwner = user?.role === 'owner'
 
   const [business, setBusiness] = useState(null)
   const [form, setForm] = useState({
     name: '', phone: '', address: '', description: '',
     primary_color: '#C2185B', secondary_color: '#F8BBD0',
-    reminders_enabled: true,
+    reminders_enabled: true, logo_url: '',
   })
   const [hours, setHours] = useState(DEFAULT_HOURS)
   const [loading, setLoading] = useState(true)
@@ -66,6 +67,7 @@ export default function SettingsPage() {
         primary_color: res.data.primary_color || '#C2185B',
         secondary_color: res.data.secondary_color || '#F8BBD0',
         reminders_enabled: res.data.reminders_enabled !== false,
+        logo_url: res.data.logo_url || '',
       })
     } catch {
       setError('שגיאה בטעינת פרטי העסק')
@@ -124,6 +126,7 @@ export default function SettingsPage() {
     try {
       const res = await api.put('/api/business', form)
       setBusiness(res.data)
+      updateBizCtx(res.data)
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch {
@@ -190,6 +193,44 @@ export default function SettingsPage() {
             <h2 className="font-semibold text-slate-700 text-sm">פרטי העסק</h2>
           </div>
           <div className="p-6 space-y-4">
+
+            {/* Logo upload */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">לוגו העסק</label>
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center bg-slate-50 flex-shrink-0 overflow-hidden">
+                  {form.logo_url
+                    ? <img src={form.logo_url} alt="לוגו" className="w-full h-full object-contain p-1" />
+                    : <PhotoIcon className="w-6 h-6 text-slate-300" />
+                  }
+                </div>
+                <div className="flex-1 space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-primary-600 hover:text-primary-700 transition w-fit">
+                    <PhotoIcon className="w-4 h-4" />
+                    {form.logo_url ? 'החלף לוגו' : 'העלה לוגו'}
+                    <input
+                      type="file" accept="image/*" className="hidden"
+                      onChange={e => {
+                        const file = e.target.files[0]
+                        if (!file) return
+                        if (file.size > 512 * 1024) { setError('הלוגו חייב להיות קטן מ-512KB'); return }
+                        const reader = new FileReader()
+                        reader.onload = ev => setForm(f => ({ ...f, logo_url: ev.target.result }))
+                        reader.readAsDataURL(file)
+                      }}
+                    />
+                  </label>
+                  {form.logo_url && (
+                    <button type="button" onClick={() => setForm(f => ({ ...f, logo_url: '' }))}
+                      className="text-xs text-slate-400 hover:text-red-400 transition">
+                      הסר לוגו
+                    </button>
+                  )}
+                  <p className="text-xs text-slate-400">PNG, JPG או SVG, עד 512KB</p>
+                </div>
+              </div>
+            </div>
+
             {[
               { name: 'name', label: 'שם העסק', type: 'text', placeholder: 'סטודיו שחר' },
               { name: 'phone', label: 'טלפון', type: 'tel', placeholder: '050-0000000' },

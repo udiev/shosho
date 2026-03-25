@@ -1,6 +1,6 @@
 const { getPool, sql } = require('../config/db')
 
-async function ensureRemindersColumn(pool) {
+async function ensureColumns(pool) {
   await pool.request().query(`
     IF NOT EXISTS (
       SELECT * FROM sys.columns
@@ -8,12 +8,19 @@ async function ensureRemindersColumn(pool) {
     )
     ALTER TABLE businesses ADD reminders_enabled BIT NOT NULL DEFAULT 1
   `)
+  await pool.request().query(`
+    IF NOT EXISTS (
+      SELECT * FROM sys.columns
+      WHERE object_id = OBJECT_ID('businesses') AND name = 'logo_url'
+    )
+    ALTER TABLE businesses ADD logo_url NVARCHAR(MAX) NULL
+  `)
 }
 
 async function getBusiness(req, res) {
   try {
     const pool = await getPool()
-    await ensureRemindersColumn(pool)
+    await ensureColumns(pool)
     const result = await pool.request()
       .input('id', sql.UniqueIdentifier, req.user.businessId)
       .query('SELECT * FROM businesses WHERE id = @id')
@@ -26,9 +33,10 @@ async function getBusiness(req, res) {
 }
 
 async function updateBusiness(req, res) {
-  const { name, phone, address, description, primary_color, secondary_color, reminders_enabled } = req.body
+  const { name, phone, address, description, primary_color, secondary_color, reminders_enabled, logo_url } = req.body
   try {
     const pool = await getPool()
+    await ensureColumns(pool)
     const result = await pool.request()
       .input('id', sql.UniqueIdentifier, req.user.businessId)
       .input('name', sql.NVarChar, name)
@@ -38,11 +46,12 @@ async function updateBusiness(req, res) {
       .input('primaryColor', sql.NVarChar, primary_color || '#C2185B')
       .input('secondaryColor', sql.NVarChar, secondary_color || '#F8BBD0')
       .input('remindersEnabled', sql.Bit, reminders_enabled !== false ? 1 : 0)
+      .input('logoUrl', sql.NVarChar, logo_url || null)
       .query(`
         UPDATE businesses
         SET name=@name, phone=@phone, address=@address, description=@description,
             primary_color=@primaryColor, secondary_color=@secondaryColor,
-            reminders_enabled=@remindersEnabled
+            reminders_enabled=@remindersEnabled, logo_url=@logoUrl
         OUTPUT INSERTED.*
         WHERE id=@id
       `)
