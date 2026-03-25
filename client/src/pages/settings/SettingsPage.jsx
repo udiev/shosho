@@ -50,9 +50,8 @@ export default function SettingsPage() {
   const [teamSuccess, setTeamSuccess] = useState('')
 
   useEffect(() => {
-    const calls = [fetchBusiness(), fetchHours()]
-    if (isOwner) calls.push(fetchTeam())
-    Promise.all(calls).finally(() => setLoading(false))
+    Promise.all([fetchBusiness(), fetchHours()]).finally(() => setLoading(false))
+    if (isOwner) fetchTeam() // non-blocking — doesn't delay form rendering
   }, [])
 
   async function fetchBusiness() {
